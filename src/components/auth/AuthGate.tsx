@@ -32,6 +32,8 @@ export function AuthGate({ children }: AuthGateProps) {
     });
 
     // Listen for auth changes
+    let currentChannel: any = null;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setUser(session?.user ?? null);
@@ -49,11 +51,29 @@ export function AuthGate({ children }: AuthGateProps) {
           // Clear guest flag when user signs in
           localStorage.removeItem("task-manager-guest");
           setIsGuest(false);
+
+          // Setup realtime sync
+          if (!currentChannel) {
+            import("@/lib/sync/realtime").then(({ setupRealtimeSync }) => {
+              currentChannel = setupRealtimeSync(session.user.id);
+            });
+          }
+        } else {
+          // Cleanup channel if user logs out
+          if (currentChannel) {
+            supabase.removeChannel(currentChannel);
+            currentChannel = null;
+          }
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      if (currentChannel) {
+        supabase.removeChannel(currentChannel);
+      }
+    };
   }, []);
 
   const handleGuest = () => {
