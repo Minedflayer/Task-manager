@@ -3,6 +3,7 @@
 import { observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
 import { Home, List, Folder, Tag, Users } from 'lucide-react';
+import { CreateCategory } from '../categories/CreateCategory';
 
 export const Sidebar = observer(function Sidebar() {
   const categories = state$.categories.get();
@@ -39,6 +40,7 @@ export const Sidebar = observer(function Sidebar() {
             </div>
           ))}
         </div>
+        <CreateCategory />
       </div>
     </aside>
   );
