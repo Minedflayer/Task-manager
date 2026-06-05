@@ -20,18 +20,20 @@ describe('TaskList', () => {
   it('toggles task completion status when clicked', () => {
     render(<TaskList />);
     
-    // Find the toggle button for Task 1
-    const task1Button = screen.getAllByRole('button')[0];
+    // Find the toggle button for Task 1 via its aria-label
+    const toggleButtons = screen.getAllByRole('button', { name: /mark as done/i });
+    const task1Toggle = toggleButtons[0]; // first pending task
     
     // Toggle to done
-    fireEvent.click(task1Button);
+    fireEvent.click(task1Toggle);
     
     // Wait for state to update
     const tasks = state$.tasks.get();
     expect(tasks.find(t => t.id === 't1')?.status).toBe('done');
     
     // Toggle back to pending
-    fireEvent.click(task1Button);
+    const doneButton = screen.getAllByRole('button', { name: /mark as pending/i })[0];
+    fireEvent.click(doneButton);
     const updatedTasks = state$.tasks.get();
     expect(updatedTasks.find(t => t.id === 't1')?.status).toBe('pending');
   });

@@ -4,8 +4,9 @@ import { useState } from "react";
 import { observer } from "@legendapp/state/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, CalendarDays, Calendar } from "lucide-react";
+import { useDroppable } from "@dnd-kit/core";
 import { state$, Task } from "@/lib/state/store";
-import { getWeekDays, getDayHours, formatDate, formatTime } from "@/lib/calendar/calendarUtils";
+import { getWeekDays, getDayHours, formatDate } from "@/lib/calendar/calendarUtils";
 
 // Abbreviated day names for column headers
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -249,12 +250,17 @@ function CalendarSlot({ dateStr, hour, tasks }: CalendarSlotProps) {
   const slotId = `slot-${dateStr}-${hour}`;
   const categories = state$.categories.get();
 
+  const { setNodeRef, isOver } = useDroppable({ id: slotId });
+
   return (
     <div
+      ref={setNodeRef}
       id={slotId}
       data-date={dateStr}
       data-hour={hour}
-      className="border-t border-slate-50 h-14 p-0.5 relative hover:bg-slate-50/60 transition-colors"
+      className={`border-t border-slate-50 h-14 p-0.5 relative transition-colors ${
+        isOver ? "bg-indigo-50 border-indigo-200 border" : "hover:bg-slate-50/60"
+      }`}
     >
       {tasks.map((task) => {
         const cat = categories.find((c) => c.id === task.category_id);
