@@ -33,9 +33,19 @@ export function AuthGate({ children }: AuthGateProps) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
         setUser(session?.user ?? null);
         if (session?.user) {
+          // If they were a guest, migrate their data
+          const guestFlag = localStorage.getItem("task-manager-guest");
+          if (guestFlag === "true") {
+            try {
+              const { migrateToSupabase } = await import("@/lib/sync/syncUtils");
+              await migrateToSupabase(session.user.id);
+            } catch (err) {
+              console.error("Migration failed:", err);
+            }
+          }
           // Clear guest flag when user signs in
           localStorage.removeItem("task-manager-guest");
           setIsGuest(false);
