@@ -10,7 +10,7 @@ export const CreateTask = observer(function CreateTask() {
   const [categoryId, setCategoryId] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
-  
+
   const categories = state$.categories.get();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -43,8 +43,9 @@ export const CreateTask = observer(function CreateTask() {
           onChange={(e) => setTitle(e.target.value)}
           className="w-full text-lg font-medium bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-slate-400"
         />
-        
+
         <div className="flex flex-wrap items-center gap-3 mt-2">
+          {/* Category */}
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600">
             <Tag size={14} className="text-slate-400" />
             <select
@@ -62,25 +63,39 @@ export const CreateTask = observer(function CreateTask() {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600">
-            <Calendar size={14} className="text-slate-400" />
+          {/* Date (Fixed Click Zone) */}
+          <div className="relative flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 cursor-pointer">
+            <Calendar size={14} className="text-slate-400 z-0" />
             <input
               type="date"
               aria-label="Date"
               value={scheduledDate}
               onChange={(e) => setScheduledDate(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 focus:outline-none text-slate-600 cursor-pointer w-auto"
+              className="bg-transparent border-none focus:ring-0 focus:outline-none text-slate-600 cursor-pointer w-auto z-10
+                   [&::-webkit-calendar-picker-indicator]:absolute 
+                   [&::-webkit-calendar-picker-indicator]:inset-0 
+                   [&::-webkit-calendar-picker-indicator]:w-full 
+                   [&::-webkit-calendar-picker-indicator]:h-full 
+                   [&::-webkit-calendar-picker-indicator]:opacity-0 
+                   [&::-webkit-calendar-picker-indicator]:cursor-pointer"
             />
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600">
-            <Clock size={14} className="text-slate-400" />
+          {/* Time (Fixed Click Zone) */}
+          <div className="relative flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 cursor-pointer">
+            <Clock size={14} className="text-slate-400 z-0" />
             <input
               type="time"
               aria-label="Time"
               value={scheduledTime}
               onChange={(e) => setScheduledTime(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 focus:outline-none text-slate-600 cursor-pointer"
+              className="bg-transparent border-none focus:ring-0 focus:outline-none text-slate-600 cursor-pointer z-10
+                   [&::-webkit-calendar-picker-indicator]:absolute 
+                   [&::-webkit-calendar-picker-indicator]:inset-0 
+                   [&::-webkit-calendar-picker-indicator]:w-full 
+                   [&::-webkit-calendar-picker-indicator]:h-full 
+                   [&::-webkit-calendar-picker-indicator]:opacity-0 
+                   [&::-webkit-calendar-picker-indicator]:cursor-pointer"
             />
           </div>
 
