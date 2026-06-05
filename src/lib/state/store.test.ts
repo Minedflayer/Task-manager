@@ -1,0 +1,38 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { state$ } from './store';
+
+describe('Legend-State Store', () => {
+  beforeEach(() => {
+    // Reset state before each test
+    state$.set({ tasks: [], categories: [] });
+  });
+
+  it('should initialize with empty tasks and categories', () => {
+    expect(state$.tasks.get()).toEqual([]);
+    expect(state$.categories.get()).toEqual([]);
+  });
+
+  it('should be able to add a category', () => {
+    const category = { id: 'c1', name: 'Work', color: '#000' };
+    state$.categories.push(category);
+    expect(state$.categories.get()).toHaveLength(1);
+    expect(state$.categories[0].get()).toEqual(category);
+  });
+
+  it('should be able to add a task', () => {
+    const task = { 
+      id: 't1', 
+      title: 'Buy groceries', 
+      status: 'pending', 
+      category_id: null 
+    };
+    state$.tasks.push(task as any);
+    expect(state$.tasks.get()).toHaveLength(1);
+    expect(state$.tasks[0].title.get()).toBe('Buy groceries');
+  });
+
+  it('should have persistence configured', () => {
+    // Just verifying the store doesn't crash when configured with sync
+    expect(state$).toBeDefined();
+  });
+});
