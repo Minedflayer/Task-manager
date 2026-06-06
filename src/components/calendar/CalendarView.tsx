@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, memo } from "react";
 import { observer } from "@legendapp/state/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, CalendarDays, Calendar } from "lucide-react";
@@ -41,14 +41,19 @@ export const CalendarView = observer(function CalendarView({
     setCurrentDate(next);
   }
 
-  /** Tasks scheduled for a given date + hour (hour as "HH:00") */
-  function getTasksForSlot(dateStr: string, hour: string): Task[] {
-    return tasks.filter(
-      (t) =>
-        t.scheduled_date === dateStr &&
-        t.scheduled_time?.startsWith(hour.slice(0, 2))
-    );
-  }
+  // Precompute O(N) map of slot to tasks instead of O(N*M) filtering
+  const tasksBySlot = useMemo(() => {
+    const map: Record<string, Task[]> = {};
+    for (const t of tasks) {
+      if (t.scheduled_date && t.scheduled_time) {
+        const hourKey = t.scheduled_time.slice(0, 2) + ":00";
+        const key = `${t.scheduled_date}-${hourKey}`;
+        if (!map[key]) map[key] = [];
+        map[key].push(t);
+      }
+    }
+    return map;
+  }, [tasks]);
 
   return (
     <div className="flex flex-col bg-white/70 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -123,13 +128,13 @@ export const CalendarView = observer(function CalendarView({
               weekDays={weekDays}
               todayStr={todayStr}
               hours={VISIBLE_HOURS}
-              getTasksForSlot={getTasksForSlot}
+              tasksBySlot={tasksBySlot}
             />
           ) : (
             <DailyColumn
               dateStr={currentDateStr}
               hours={VISIBLE_HOURS}
-              getTasksForSlot={getTasksForSlot}
+              tasksBySlot={tasksBySlot}
               isToday={currentDateStr === todayStr}
             />
           )}
@@ -141,14 +146,16 @@ export const CalendarView = observer(function CalendarView({
 
 // ── Weekly grid ──────────────────────────────────────────────────────────────
 
+const EMPTY_TASKS: Task[] = [];
+
 interface WeeklyGridProps {
   weekDays: Date[];
   todayStr: string;
   hours: string[];
-  getTasksForSlot: (date: string, hour: string) => Task[];
+  tasksBySlot: Record<string, Task[]>;
 }
 
-function WeeklyGrid({ weekDays, todayStr, hours, getTasksForSlot }: WeeklyGridProps) {
+const WeeklyGrid = memo(function WeeklyGrid({ weekDays, todayStr, hours, tasksBySlot }: WeeklyGridProps) {
   return (
     <div className="grid" style={{ gridTemplateColumns: "56px repeat(7, 1fr)" }}>
       {/* Day header row */}
@@ -186,7 +193,7 @@ function WeeklyGrid({ weekDays, todayStr, hours, getTasksForSlot }: WeeklyGridPr
           {/* Day cells */}
           {weekDays.map((day) => {
             const dateStr = formatDate(day);
-            const slotTasks = getTasksForSlot(dateStr, hour);
+            const slotTasks = tasksBySlot[`${dateStr}-${hour}`] || EMPTY_TASKS;
             return (
               <CalendarSlot
                 key={`${dateStr}-${hour}`}
@@ -200,18 +207,18 @@ function WeeklyGrid({ weekDays, todayStr, hours, getTasksForSlot }: WeeklyGridPr
       ))}
     </div>
   );
-}
+});
 
 // ── Daily column ─────────────────────────────────────────────────────────────
 
 interface DailyColumnProps {
   dateStr: string;
   hours: string[];
-  getTasksForSlot: (date: string, hour: string) => Task[];
+  tasksBySlot: Record<string, Task[]>;
   isToday: boolean;
 }
 
-function DailyColumn({ dateStr, hours, getTasksForSlot, isToday }: DailyColumnProps) {
+const DailyColumn = memo(function DailyColumn({ dateStr, hours, tasksBySlot, isToday }: DailyColumnProps) {
   return (
     <div>
       <div className="sticky top-0 bg-white/90 z-10 border-b border-slate-100 py-3 px-5 text-sm font-semibold text-slate-700">
@@ -219,7 +226,7 @@ function DailyColumn({ dateStr, hours, getTasksForSlot, isToday }: DailyColumnPr
       </div>
       <div className="grid" style={{ gridTemplateColumns: "56px 1fr" }}>
         {hours.map((hour) => {
-          const slotTasks = getTasksForSlot(dateStr, hour);
+          const slotTasks = tasksBySlot[`${dateStr}-${hour}`] || EMPTY_TASKS;
           return (
             <div key={hour} className="contents">
               <div className="border-t border-slate-50 pr-2 pt-1 text-right text-xs text-slate-400 select-none h-14">
@@ -236,7 +243,7 @@ function DailyColumn({ dateStr, hours, getTasksForSlot, isToday }: DailyColumnPr
       </div>
     </div>
   );
-}
+});
 
 // ── Individual slot ──────────────────────────────────────────────────────────
 
@@ -246,7 +253,7 @@ interface CalendarSlotProps {
   tasks: Task[];
 }
 
-function CalendarSlot({ dateStr, hour, tasks }: CalendarSlotProps) {
+const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: CalendarSlotProps) {
   const slotId = `slot-${dateStr}-${hour}`;
   const categories = state$.categories.get();
 
@@ -285,4 +292,4 @@ function CalendarSlot({ dateStr, hour, tasks }: CalendarSlotProps) {
       })}
     </div>
   );
-}
+});

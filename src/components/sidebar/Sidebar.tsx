@@ -2,7 +2,7 @@
 
 import { observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
-import { Home, List, Folder, Tag, Users } from 'lucide-react';
+import { Home, List, Folder, Tag, Users, Trash2 } from 'lucide-react';
 import { CreateCategory } from '../categories/CreateCategory';
 
 export const Sidebar = observer(function Sidebar() {
@@ -41,6 +41,25 @@ export const Sidebar = observer(function Sidebar() {
           ))}
         </div>
         <CreateCategory />
+      </div>
+
+      <div className="mt-auto pt-4 border-t border-slate-200">
+        <button 
+          onClick={async () => {
+            if (confirm('Are you sure you want to clear all tasks?')) {
+              state$.tasks.set([]);
+              const { supabase } = await import('@/lib/supabase');
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session?.user) {
+                await supabase.from('tasks').delete().eq('user_id', session.user.id);
+              }
+            }
+          }}
+          className="flex items-center gap-3 px-2 py-2 hover:bg-red-50 text-red-600 rounded-lg w-full text-left transition-colors font-medium text-sm"
+        >
+          <Trash2 size={18} />
+          Clear All Tasks
+        </button>
       </div>
     </aside>
   );
