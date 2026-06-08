@@ -5,6 +5,7 @@ import { useObservable, observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
 import { Plus, Calendar, Clock, Tag } from 'lucide-react';
 import { CategoryDropdown } from './CategoryDropDown';
+import { DatePickerDropdown } from './DatePickerDropdown';
 
 export const CreateTask = observer(function CreateTask() {
   const [title, setTitle] = useState('');
@@ -55,25 +56,10 @@ export const CreateTask = observer(function CreateTask() {
           />
 
 
-
-
-          {/* Date (Fixed Click Zone) */}
-          <div className="relative flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 cursor-pointer">
-            <Calendar size={14} className="text-slate-400 z-0" />
-            <input
-              type="date"
-              aria-label="Date"
-              value={scheduledDate}
-              onChange={(e) => setScheduledDate(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 focus:outline-none text-slate-600 cursor-pointer w-auto z-10
-                   [&::-webkit-calendar-picker-indicator]:absolute 
-                   [&::-webkit-calendar-picker-indicator]:inset-0 
-                   [&::-webkit-calendar-picker-indicator]:w-full 
-                   [&::-webkit-calendar-picker-indicator]:h-full 
-                   [&::-webkit-calendar-picker-indicator]:opacity-0 
-                   [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-            />
-          </div>
+          <DatePickerDropdown
+            selectedDate={scheduledDate}
+            onChange={setScheduledDate}
+          />
 
           {/* Time (Fixed Click Zone) */}
           <div className="relative flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 cursor-pointer">
