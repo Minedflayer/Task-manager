@@ -25,7 +25,7 @@ export const TaskCardBody = observer(function TaskCardBody({ task$ }: TaskCardPr
   );
 
   const handleToggle = () => {
-    // 💥 The Magic: Direct mutation updates global state and triggers
+    // Direct mutation updates global state and triggers
     // only the necessary micro-renders automatically.
     task$.status.set(isDone ? "pending" : "done");
   };
@@ -41,7 +41,6 @@ export const TaskCardBody = observer(function TaskCardBody({ task$ }: TaskCardPr
         {isDone && <Check size={14} className="stroke-[3]" />}
       </button>
 
-      {/* ... Rest of your render logic remains identical ... */}
       <div className="flex flex-col flex-1 min-w-0">
         <span className={`text-slate-800 font-medium transition-all truncate ${isDone ? "line-through text-slate-400" : ""}`}>
           {task.title}
@@ -83,11 +82,11 @@ export const TaskCard = observer(function TaskCard({ task$ }: TaskCardProps) {
     <motion.div
       ref={setNodeRef}
       layout
-      // 1. Optional but recommended: A nice entrance animation for new tasks
+      //  An entrance animation for new tasks
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
 
-      // 2. The delayed exit animation
+      // The delayed exit animation
       exit={{
         opacity: 0,
         scale: 0.95,
@@ -97,12 +96,12 @@ export const TaskCard = observer(function TaskCard({ task$ }: TaskCardProps) {
         marginTop: 0,
         marginBottom: 0,
         transition: {
-          delay: 1.5, // <-- Adjust this for the exact delay duration you want
+          delay: 1.5,
           duration: 0.3
         }
       }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
-      // 3. Added `overflow-hidden` so inner text doesn't spill out while height shrinks to 0
+      // Added `overflow-hidden` so inner text doesn't spill out while height shrinks to 0
       className="flex items-center gap-3 p-4 bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow overflow-hidden"
     >
 

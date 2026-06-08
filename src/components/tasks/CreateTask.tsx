@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useObservable, observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
 import { Plus, Calendar, Clock, Tag } from 'lucide-react';
+import { CategoryDropdown } from './CategoryDropDown';
 
 export const CreateTask = observer(function CreateTask() {
   const [title, setTitle] = useState('');
@@ -46,22 +47,15 @@ export const CreateTask = observer(function CreateTask() {
 
         <div className="flex flex-wrap items-center gap-3 mt-2">
           {/* Category */}
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600">
-            <Tag size={14} className="text-slate-400" />
-            <select
-              aria-label="Category"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 focus:outline-none text-slate-600 appearance-none cursor-pointer pr-4"
-            >
-              <option value="">No Category</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Category - Replaced native select with our custom component */}
+          <CategoryDropdown
+            categories={categories}
+            selectedId={categoryId}
+            onChange={setCategoryId}
+          />
+
+
+
 
           {/* Date (Fixed Click Zone) */}
           <div className="relative flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 cursor-pointer">
