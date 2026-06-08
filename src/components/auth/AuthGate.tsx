@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { User } from "@supabase/supabase-js";
+import type { User, RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { AuthPage } from "@/components/auth/AuthPage";
+import { setupRealtimeSync } from "@/lib/sync/realtime";
 
 interface AuthGateProps {
   children: React.ReactNode;
@@ -32,7 +33,7 @@ export function AuthGate({ children }: AuthGateProps) {
     });
 
     // Listen for auth changes
-    let currentChannel: any = null;
+    let currentChannel: RealtimeChannel | null = null;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
@@ -54,9 +55,7 @@ export function AuthGate({ children }: AuthGateProps) {
 
           // Setup realtime sync
           if (!currentChannel) {
-            import("@/lib/sync/realtime").then(({ setupRealtimeSync }) => {
-              currentChannel = setupRealtimeSync(session.user.id);
-            });
+            currentChannel = setupRealtimeSync(session.user.id);
           }
         } else {
           // Cleanup channel if user logs out

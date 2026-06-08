@@ -3,7 +3,7 @@ import { state$, Category, Task } from '@/lib/state/store';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export function setupRealtimeSync(userId: string): RealtimeChannel {
-  const channel = supabase.channel('custom-all-channel')
+  const channel = supabase.channel(`custom-all-channel-${userId}`)
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'categories', filter: `user_id=eq.${userId}` },
