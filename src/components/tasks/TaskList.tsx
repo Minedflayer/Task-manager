@@ -14,7 +14,7 @@ export const TaskList = observer(function TaskList() {
 
     // Create a shallow copy to sort by date chronologically
     return [...tasks]
-      .filter(task => task.status === 'done')
+      .filter(task => task.status !== 'done')
       .sort((a, b) => {
         // Sort chronologically by scheduled_date
         const dateA = a.scheduled_date ? new Date(a.scheduled_date).getTime() : Infinity;
