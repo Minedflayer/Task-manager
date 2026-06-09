@@ -3,10 +3,13 @@
 import { useState, useMemo, memo } from "react";
 import { observer } from "@legendapp/state/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, CalendarDays, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, Calendar, Plus } from "lucide-react";
 import { useDroppable } from "@dnd-kit/core";
 import { state$, Task } from "@/lib/state/store";
 import { getWeekDays, getDayHours, formatDate } from "@/lib/calendar/calendarUtils";
+import { Rnd } from "react-rnd";
+import { CreateTask } from "../tasks/CreateTask";
+import { CreateTaskModal } from "./CreateTaskModal";
 
 // Abbreviated day names for column headers
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -56,91 +59,100 @@ export const CalendarView = observer(function CalendarView({
   }, [tasks]);
 
   return (
-    <div className="flex flex-col bg-white/70 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            aria-label="Previous"
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span className="text-sm font-semibold text-slate-700 min-w-[120px] text-center">
-            {view === "weekly"
-              ? `${weekDays[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${weekDays[6].toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-              : currentDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-          </span>
-          <button
-            type="button"
-            onClick={() => navigate(1)}
-            aria-label="Next"
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            <ChevronRight size={16} />
-          </button>
+    <Rnd
+      default={{ x: 0, y: 0, width: 800, height: 600 }}
+      minWidth={400}
+      minHeight={300}
+      bounds="parent" // Prevents dragging outside the parent/containeer
+      className="z-40 absolute"
+      dragHandleClassName="drag-handle"
+      cancel=".cancel-drag"
+    >
+
+      <div className="flex flex-col bg-white/70 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        {/* ── Header ── */}
+        <div className=" drag-handle cursor-grab active:cursor-grabbing flex items-center justify-between px-5 py-3 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              aria-label="Previous"
+              className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <span className="text-sm font-semibold text-slate-700 min-w-[120px] text-center">
+              {view === "weekly"
+                ? `${weekDays[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${weekDays[6].toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                : currentDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+            </span>
+            <button
+              type="button"
+              onClick={() => navigate(1)}
+              aria-label="Next"
+              className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+
+          {/* View toggle */}
+          <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+            <button
+              type="button"
+              onClick={() => setView("daily")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "daily"
+                ? "bg-white shadow-sm text-slate-800"
+                : "text-slate-500 hover:text-slate-700"
+                }`}
+            >
+              <Calendar size={13} />
+              Daily
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("weekly")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "weekly"
+                ? "bg-white shadow-sm text-slate-800"
+                : "text-slate-500 hover:text-slate-700"
+                }`}
+            >
+              <CalendarDays size={13} />
+              Weekly
+            </button>
+          </div>
         </div>
 
-        {/* View toggle */}
-        <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
-          <button
-            type="button"
-            onClick={() => setView("daily")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-              view === "daily"
-                ? "bg-white shadow-sm text-slate-800"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
+        {/* ── Body ── */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="cancel-drag overflow-auto flex-1 h-full"
+            style={{ maxHeight: "calc(100vh - 280px)" }}
           >
-            <Calendar size={13} />
-            Daily
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("weekly")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-              view === "weekly"
-                ? "bg-white shadow-sm text-slate-800"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            <CalendarDays size={13} />
-            Weekly
-          </button>
-        </div>
+            {view === "weekly" ? (
+              <WeeklyGrid
+                weekDays={weekDays}
+                todayStr={todayStr}
+                hours={VISIBLE_HOURS}
+                tasksBySlot={tasksBySlot}
+              />
+            ) : (
+              <DailyColumn
+                dateStr={currentDateStr}
+                hours={VISIBLE_HOURS}
+                tasksBySlot={tasksBySlot}
+                isToday={currentDateStr === todayStr}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
-
-      {/* ── Body ── */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={view}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.15 }}
-          className="overflow-auto"
-          style={{ maxHeight: "calc(100vh - 280px)" }}
-        >
-          {view === "weekly" ? (
-            <WeeklyGrid
-              weekDays={weekDays}
-              todayStr={todayStr}
-              hours={VISIBLE_HOURS}
-              tasksBySlot={tasksBySlot}
-            />
-          ) : (
-            <DailyColumn
-              dateStr={currentDateStr}
-              hours={VISIBLE_HOURS}
-              tasksBySlot={tasksBySlot}
-              isToday={currentDateStr === todayStr}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </div>
+    </Rnd>
   );
 });
 
@@ -159,22 +171,22 @@ const WeeklyGrid = memo(function WeeklyGrid({ weekDays, todayStr, hours, tasksBy
   return (
     <div className="grid" style={{ gridTemplateColumns: "56px repeat(7, 1fr)" }}>
       {/* Day header row */}
-      <div className="sticky top-0 bg-white/90 z-10 border-b border-slate-100" />
+      <div className="sticky top-0 bg-white/90 z-10 border-b border-slate-200" />
       {weekDays.map((day, i) => {
         const dateStr = formatDate(day);
         const isToday = dateStr === formatDate(new Date());
         return (
           <div
             key={dateStr}
-            className={`sticky top-0 bg-white/90 z-10 border-b border-slate-100 flex flex-col items-center py-2 text-xs font-semibold ${
-              isToday ? "text-indigo-600" : "text-slate-500"
-            }`}
+            className={`sticky top-0 bg-white/90 z-10 border-b border-l border-slate-100 flex flex-col items-center py-2 text-xs font-semibold 
+              ${isToday ? "text-indigo-600" : "text-slate-500"
+              }`}
           >
             <span>{DAY_NAMES[i]}</span>
             <span
-              className={`mt-0.5 w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold ${
-                isToday ? "bg-indigo-600 text-white" : "text-slate-700"
-              }`}
+              className={`mt-0.5 w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold 
+                ${isToday ? "bg-indigo-600 text-white" : "text-slate-700"
+                }`}
             >
               {day.getUTCDate()}
             </span>
@@ -186,7 +198,7 @@ const WeeklyGrid = memo(function WeeklyGrid({ weekDays, todayStr, hours, tasksBy
       {hours.map((hour) => (
         <div key={hour} className="contents">
           {/* Time label */}
-          <div className="border-t border-slate-50 pr-2 pt-1 text-right text-xs text-slate-400 select-none h-14">
+          <div className="border-t border-slate-200 pr-2 pt-1 text-right text-xs text-slate-400 select-none h-14">
             {hour}
           </div>
 
@@ -221,7 +233,7 @@ interface DailyColumnProps {
 const DailyColumn = memo(function DailyColumn({ dateStr, hours, tasksBySlot, isToday }: DailyColumnProps) {
   return (
     <div>
-      <div className="sticky top-0 bg-white/90 z-10 border-b border-slate-100 py-3 px-5 text-sm font-semibold text-slate-700">
+      <div className="sticky top-0 bg-white/90 z-10 border-b border-slate-200 py-3 px-5 text-sm font-semibold text-slate-700">
         {isToday ? "Today" : dateStr}
       </div>
       <div className="grid" style={{ gridTemplateColumns: "56px 1fr" }}>
@@ -229,7 +241,7 @@ const DailyColumn = memo(function DailyColumn({ dateStr, hours, tasksBySlot, isT
           const slotTasks = tasksBySlot[`${dateStr}-${hour}`] || EMPTY_TASKS;
           return (
             <div key={hour} className="contents">
-              <div className="border-t border-slate-50 pr-2 pt-1 text-right text-xs text-slate-400 select-none h-14">
+              <div className="border-t border-slate-200 pr-2 pt-1 text-right text-xs text-slate-400 select-none h-14">
                 {hour}
               </div>
               <CalendarSlot
@@ -259,37 +271,71 @@ const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: Ca
 
   const { setNodeRef, isOver } = useDroppable({ id: slotId });
 
+  // States for adding a new event in the calendar 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Add listener
+  const handleAddClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsModalOpen(true);
+    console.log(`Open Create Task for: Date ${dateStr}, Time: ${hour}`);
+  }
+
   return (
-    <div
-      ref={setNodeRef}
-      id={slotId}
-      data-date={dateStr}
-      data-hour={hour}
-      className={`border-t border-slate-50 h-14 p-0.5 relative transition-colors ${
-        isOver ? "bg-indigo-50 border-indigo-200 border" : "hover:bg-slate-50/60"
-      }`}
-    >
-      {tasks.map((task) => {
-        const cat = categories.find((c) => c.id === task.category_id);
-        return (
-          <div
-            key={task.id}
-            className="absolute inset-x-0.5 inset-y-0.5 rounded-lg px-2 py-1 text-xs font-medium truncate flex items-center gap-1.5"
-            style={{
-              backgroundColor: cat ? `${cat.color}cc` : "#e2e8f0",
-              color: "#1e293b",
-            }}
-          >
-            {cat && (
-              <span
-                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ backgroundColor: cat.color }}
-              />
-            )}
-            {task.title}
-          </div>
-        );
-      })}
-    </div>
+    <>
+      <div
+        ref={setNodeRef}
+        id={slotId}
+        data-date={dateStr}
+        data-hour={hour}
+
+        className={`group border-t border-l border-slate-200 h-14 p-0.5 relative transition-colors ${isOver ? "bg-indigo-100/50" : "hover:bg-slate-50/60"
+          }`}
+      >
+        {tasks.map((task) => {
+          const cat = categories.find((c) => c.id === task.category_id);
+          return (
+
+            <div
+              key={task.id}
+              className="absolute inset-x-0.5 inset-y-0.5 rounded-lg px-2 py-1 text-xs font-medium truncate flex items-center gap-1.5 shadow-sm border border-black/5"
+              style={{
+                backgroundColor: cat ? `${cat.color}cc` : "#f8fafc",
+                color: "#1e293b",
+              }}
+            >
+              {cat && (
+                <span
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: cat.color }}
+                />
+              )}
+              {task.title}
+            </div>
+          );
+        })}
+
+
+        {/* The Visual Affordance */}
+        <button
+          onClick={handleAddClick}
+          className="absolute inset-0 m-auto w-6 h-6 flex items-center justify-center rounded-md bg-white/90 text-slate-400 shadow-sm border border-slate-200 opacity-0 group-hover:opacity-100 hover:text-indigo-600 hover:border-indigo-300 hover:bg-white transition-all z-10 cursor-pointer"
+          title={`Add task at ${hour}`}
+        >
+          <Plus size={14} strokeWidth={3} />
+        </button>
+      </div>
+
+      {/* The modal render */}
+      {isModalOpen && (
+        <CreateTaskModal
+          date={dateStr}
+          hour={hour}
+          // Pass a function down so the modal can close itself (e.g., on "Cancel" or "Save")
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
+    </>
+
   );
 });
