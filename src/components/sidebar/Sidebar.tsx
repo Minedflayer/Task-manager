@@ -1,21 +1,101 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
-import { Home, List, Folder, Tag, Users, Trash2 } from 'lucide-react';
+import { Home, List, Trash2, LogIn, LogOut } from 'lucide-react';
 import { CreateCategory } from '../categories/CreateCategory';
+import { supabase } from '@/lib/supabase';
+import type { User } from '@supabase/supabase-js';
 
 export const Sidebar = observer(function Sidebar() {
   const categories = state$.categories.get();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleExitGuest = () => {
+    localStorage.removeItem("task-manager-guest");
+    window.dispatchEvent(new Event("guest-state-change"));
+  };
+
+  const handleSignOut = async () => {
+    if (confirm('Are you sure you want to sign out?')) {
+      await supabase.auth.signOut();
+    }
+  };
 
   return (
     <aside className="w-64 bg-white/60 backdrop-blur-xl border-r border-slate-200 h-screen p-4 flex flex-col gap-6">
-      <div className="flex items-center gap-3 px-2 py-3 bg-white rounded-xl shadow-sm border border-slate-100">
-        <div className="w-8 h-8 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-medium">
-          U
+      {loading ? (
+        <div className="flex items-center gap-3 px-3 py-3 bg-white rounded-xl shadow-sm border border-slate-100 animate-pulse">
+          <div className="w-9 h-9 rounded-xl bg-slate-200" />
+          <div className="flex-1 flex flex-col gap-1.5">
+            <div className="h-3 bg-slate-200 rounded w-16" />
+            <div className="h-2 bg-slate-200 rounded w-24" />
+          </div>
         </div>
-        <span className="font-medium text-slate-800">User</span>
-      </div>
+      ) : user ? (
+        <div className="flex flex-col gap-2 p-3 bg-slate-50 border border-slate-100 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-semibold shadow-md shadow-orange-100 text-sm">
+              {user.email?.[0].toUpperCase() ?? 'U'}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-semibold text-slate-800 text-sm leading-none truncate" title={user.email ?? ''}>
+                {user.email?.split('@')[0]}
+              </span>
+              <span className="text-[10px] text-slate-500 truncate mt-1 leading-none" title={user.email ?? ''}>
+                {user.email}
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleSignOut}
+            className="mt-1 w-full flex items-center justify-center gap-2 py-1.5 px-3 bg-white hover:bg-red-50 border border-slate-200 text-slate-600 hover:text-red-600 rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+          >
+            <LogOut size={13} className="text-slate-400" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2 p-3 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 border border-indigo-100/40 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-semibold shadow-md shadow-indigo-100 text-sm">
+              G
+            </div>
+            <div className="flex flex-col">
+              <span className="font-semibold text-slate-800 text-sm leading-none">Guest User</span>
+              <span className="text-[10px] text-indigo-600 font-medium mt-1 leading-none bg-indigo-50 px-1.5 py-0.5 rounded-full w-max">Guest Mode</span>
+            </div>
+          </div>
+          
+          <button
+            onClick={handleExitGuest}
+            className="mt-1 w-full flex items-center justify-center gap-2 py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+          >
+            <LogIn size={13} className="text-indigo-500 animate-pulse" />
+            <span>Sign In / Sign Up</span>
+          </button>
+        </div>
+      )}
 
       <nav className="flex flex-col gap-1">
         <SidebarItem icon={<Home size={18} />} label="Home" />
