@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
-import { Popover, Transition } from '@headlessui/react';
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
+import { Transition } from '@headlessui/react'
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
 import { format, parse } from 'date-fns';
@@ -22,12 +23,12 @@ export function DatePickerDropdown({ selectedDate, onChange }: DatePickerDropdow
         <Popover className="relative z-20">
             {({ close }) => (
                 <>
-                    <Popover.Button className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 hover:bg-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
+                    <PopoverButton className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 hover:bg-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
                         <CalendarIcon size={14} className="text-slate-400" />
                         <span>
                             {parsedDate ? format(parsedDate, 'MMM d, yyyy') : "No Date"}
                         </span>
-                    </Popover.Button>
+                    </PopoverButton>
 
                     <Transition
                         as={Fragment}
@@ -38,7 +39,7 @@ export function DatePickerDropdown({ selectedDate, onChange }: DatePickerDropdow
                         leaveFrom="transform opacity-100 scale-100"
                         leaveTo="transform opacity-0 scale-95"
                     >
-                        <Popover.Panel className="absolute left-0 mt-2 p-3 bg-white border border-slate-100 rounded-xl shadow-lg ring-1 ring-black/5 focus:outline-none">
+                        <PopoverPanel className="absolute z-50 left-0 mt-2 p-3 bg-white border border-slate-100 rounded-xl shadow-lg ring-1 ring-black/5 focus:outline-none">
                             <DayPicker
                                 mode="single"
                                 selected={parsedDate}
@@ -77,7 +78,7 @@ export function DatePickerDropdown({ selectedDate, onChange }: DatePickerDropdow
                                     },
                                 }}
                             />
-                        </Popover.Panel>
+                        </PopoverPanel>
                     </Transition>
                 </>
             )}

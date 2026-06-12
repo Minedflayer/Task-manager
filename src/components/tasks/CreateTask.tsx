@@ -6,6 +6,7 @@ import { state$ } from '@/lib/state/store';
 import { Plus, Calendar, Clock, Tag } from 'lucide-react';
 import { CategoryDropdown } from './CategoryDropDown';
 import { DatePickerDropdown } from './DatePickerDropdown';
+import { TimePickerDropdown } from './TimePickerDropdown';
 
 export const CreateTask = observer(function CreateTask() {
   const [title, setTitle] = useState('');
@@ -36,7 +37,7 @@ export const CreateTask = observer(function CreateTask() {
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-sm p-4 mb-6">
+    <div className="relative z-30 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-sm p-4 mb-6">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="text"
@@ -47,7 +48,6 @@ export const CreateTask = observer(function CreateTask() {
         />
 
         <div className="flex flex-wrap items-center gap-3 mt-2">
-          {/* Category */}
           {/* Category - Replaced native select with our custom component */}
           <CategoryDropdown
             categories={categories}
@@ -62,22 +62,11 @@ export const CreateTask = observer(function CreateTask() {
           />
 
           {/* Time (Fixed Click Zone) */}
-          <div className="relative flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 cursor-pointer">
-            <Clock size={14} className="text-slate-400 z-0" />
-            <input
-              type="time"
-              aria-label="Time"
-              value={scheduledTime}
-              onChange={(e) => setScheduledTime(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 focus:outline-none text-slate-600 cursor-pointer z-10
-                   [&::-webkit-calendar-picker-indicator]:absolute 
-                   [&::-webkit-calendar-picker-indicator]:inset-0 
-                   [&::-webkit-calendar-picker-indicator]:w-full 
-                   [&::-webkit-calendar-picker-indicator]:h-full 
-                   [&::-webkit-calendar-picker-indicator]:opacity-0 
-                   [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-            />
-          </div>
+          <TimePickerDropdown
+            selectedTime={scheduledTime}
+            onChange={setScheduledTime}
+          />
+
 
           <button
             type="submit"
