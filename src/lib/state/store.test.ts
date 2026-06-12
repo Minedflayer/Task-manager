@@ -1,15 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { state$ } from './store';
+import { state$, Task } from './store';
 
 describe('Legend-State Store', () => {
   beforeEach(() => {
     // Reset state before each test
-    state$.set({ tasks: [], categories: [] });
+    state$.set({ tasks: [], categories: [], syncQueue: [] });
   });
 
-  it('should initialize with empty tasks and categories', () => {
+  it('should initialize with empty tasks, categories, and syncQueue', () => {
     expect(state$.tasks.get()).toEqual([]);
     expect(state$.categories.get()).toEqual([]);
+    expect(state$.syncQueue.get()).toEqual([]);
   });
 
   it('should be able to add a category', () => {
@@ -20,13 +21,14 @@ describe('Legend-State Store', () => {
   });
 
   it('should be able to add a task', () => {
-    const task = { 
+    const task: Task = { 
       id: 't1', 
       title: 'Buy groceries', 
       status: 'pending', 
-      category_id: null 
+      category_id: null,
+      updated_at: new Date().toISOString()
     };
-    state$.tasks.push(task as any);
+    state$.tasks.push(task);
     expect(state$.tasks.get()).toHaveLength(1);
     expect(state$.tasks[0].title.get()).toBe('Buy groceries');
   });

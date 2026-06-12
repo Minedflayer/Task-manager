@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { User, RealtimeChannel } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { AuthPage } from "@/components/auth/AuthPage";
 import { setupRealtimeSync } from "@/lib/sync/realtime";
@@ -16,24 +16,30 @@ interface AuthGateProps {
  */
 export function AuthGate({ children }: AuthGateProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [isGuest, setIsGuest] = useState(false);
+  const [isGuest, setIsGuest] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("task-manager-guest") === "true";
+    }
+    return false;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user was previously a guest
-    const guestFlag = typeof window !== "undefined" && localStorage.getItem("task-manager-guest");
-    if (guestFlag === "true") {
-      setIsGuest(true);
-    }
-
     // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
+    // Listen for guest state changes (e.g. from the sidebar exit guest action)
+    const handleGuestChange = () => {
+      const guestFlag = localStorage.getItem("task-manager-guest");
+      setIsGuest(guestFlag === "true");
+    };
+    window.addEventListener("guest-state-change", handleGuestChange);
+
     // Listen for auth changes
-    let currentChannel: RealtimeChannel | null = null;
+    let cleanupSync: (() => void) | null = null;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
@@ -52,16 +58,17 @@ export function AuthGate({ children }: AuthGateProps) {
           // Clear guest flag when user signs in
           localStorage.removeItem("task-manager-guest");
           setIsGuest(false);
+          window.dispatchEvent(new Event("guest-state-change"));
 
           // Setup realtime sync
-          if (!currentChannel) {
-            currentChannel = setupRealtimeSync(session.user.id);
+          if (!cleanupSync) {
+            cleanupSync = setupRealtimeSync(session.user.id);
           }
         } else {
           // Cleanup channel if user logs out
-          if (currentChannel) {
-            supabase.removeChannel(currentChannel);
-            currentChannel = null;
+          if (cleanupSync) {
+            cleanupSync();
+            cleanupSync = null;
           }
         }
       }
@@ -69,8 +76,9 @@ export function AuthGate({ children }: AuthGateProps) {
 
     return () => {
       subscription.unsubscribe();
-      if (currentChannel) {
-        supabase.removeChannel(currentChannel);
+      window.removeEventListener("guest-state-change", handleGuestChange);
+      if (cleanupSync) {
+        cleanupSync();
       }
     };
   }, []);
@@ -78,6 +86,7 @@ export function AuthGate({ children }: AuthGateProps) {
   const handleGuest = () => {
     localStorage.setItem("task-manager-guest", "true");
     setIsGuest(true);
+    window.dispatchEvent(new Event("guest-state-change"));
   };
 
   const handleAuthSuccess = () => {
