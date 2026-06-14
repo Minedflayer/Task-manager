@@ -16,11 +16,14 @@ export interface Task {
   category_id: string | null;
   scheduled_date?: string | null;
   scheduled_time?: string | null;
+  end_time?: string | null
+  description?: string | null;
   updated_at?: string;
 }
 
 export interface SyncOperation {
   id: string; // The ID of the item
+  record_id: string;
   table: 'tasks' | 'categories';
   action: 'UPSERT' | 'DELETE';
   payload?: any; // The full object for UPSERT

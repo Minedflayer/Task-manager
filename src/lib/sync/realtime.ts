@@ -34,63 +34,57 @@ function debounce(func: Function, wait: number) {
  * - Executes Supabase operations (UPSERT/DELETE) in sequence.
  * - Safely drains successfully applied operations from the queue while handling remote/local synchronization flags.
  */
+
+export const processQueue = debounce(doProcessQueue, 500);
 async function doProcessQueue() {
   if (typeof window !== 'undefined' && !window.navigator.onLine) {
-    console.log('[Sync] Offline. Keeping items in queue.');
     return;
   }
 
   const queue = state$.syncQueue.peek() || [];
   if (queue.length === 0) return;
 
-  console.log(`[Sync] Processing queue with ${queue.length} items...`);
-
-  // Group by ID to ensure only the latest mutation per item is processed
+  // Group by RECORD ID to ensure only the latest mutation per item is processed
   const latestOps = new Map<string, SyncOperation>();
   for (const op of queue) {
-    latestOps.set(op.id, op);
+    latestOps.set(op.record_id, op);
+
   }
 
   const opsToProcess = Array.from(latestOps.values());
-  const successfulIds = new Set<string>();
+  const successfulIds = new Set<String>();
 
   for (const op of opsToProcess) {
     try {
       if (op.action === 'UPSERT') {
         const { error } = await supabase.from(op.table).upsert(op.payload);
-        if (!error) {
-          successfulIds.add(op.id);
-          console.log(`[Sync] Upserted ${op.table}: ${op.id}`);
-        } else {
-          console.error(`[Sync] Failed to upsert ${op.table}:`, error);
-        }
+        if (!error) successfulIds.add(op.record_id);
       } else if (op.action === 'DELETE') {
-        const { error } = await supabase.from(op.table).delete().eq('id', op.id);
-        if (!error) {
-          successfulIds.add(op.id);
-          console.log(`[Sync] Deleted from ${op.table}: ${op.id}`);
-        } else {
-          console.error(`[Sync] Failed to delete from ${op.table}:`, error);
-        }
+        const { error } = await supabase.from(op.table).delete().eq('id', op.record_id);
+        if (!error) successfulIds.add(op.record_id);
       }
     } catch (err) {
-      console.error(`[Sync] Operation error on ${op.id}:`, err);
+      console.error(`[Sync] Operation error on ${op.record_id}:`, err);
     }
   }
 
   if (successfulIds.size > 0) {
     isApplyingRemoteChange = true;
+
+  }
+  // Remove processed items from queue
+  if (successfulIds.size > 0) {
+    isApplyingRemoteChange = true;
     try {
       const currentQueue = state$.syncQueue.peek() || [];
-      const newQueue = currentQueue.filter(op => !successfulIds.has(op.id));
+      const newQueue = currentQueue.filter(op => !successfulIds.has(op.record_id));
       state$.syncQueue.set(newQueue);
     } finally {
       isApplyingRemoteChange = false;
     }
   }
-}
 
-export const processQueue = debounce(doProcessQueue, 500);
+}
 
 /**
  * Initializes two-way real-time synchronization between the local store and Supabase.
@@ -196,8 +190,15 @@ export function setupRealtimeSync(userId: string): () => void {
           cache.set(item.id, hash);
           targetState[index].updated_at.set(now);
 
+          // Deduplicate: Remove existing pending operations for this specific record
+          const existingIndex = newQueue.findIndex(q => q.record_id === item.id && q.table === table);
+          if (existingIndex >= 0) {
+            newQueue.splice(existingIndex, 1);
+          }
+
           newQueue.push({
-            id: item.id,
+            id: crypto.randomUUID(), // Unique ID for the queue array
+            record_id: item.id,      // The target database ID
             table,
             action: 'UPSERT',
             payload: { ...item, user_id: userId, updated_at: now }
@@ -210,7 +211,17 @@ export function setupRealtimeSync(userId: string): () => void {
       for (const id of cache.keys()) {
         if (!currentIds.has(id)) {
           cache.delete(id);
-          newQueue.push({ id, table, action: 'DELETE', payload: null });
+
+          const existingIndex = newQueue.findIndex(q => q.record_id === id && q.table === table);
+          if (existingIndex >= 0) newQueue.splice(existingIndex, 1);
+
+          newQueue.push({
+            id: crypto.randomUUID(),
+            record_id: id,
+            table,
+            action: 'DELETE',
+            payload: null
+          });
           queueChanged = true;
         }
       }

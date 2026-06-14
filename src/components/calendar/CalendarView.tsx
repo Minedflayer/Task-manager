@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, memo } from "react";
-import { observer } from "@legendapp/state/react";
+import { observer, useSelector } from "@legendapp/state/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, CalendarDays, Calendar } from "lucide-react";
 import { useDroppable } from "@dnd-kit/core";
@@ -41,19 +41,20 @@ export const CalendarView = observer(function CalendarView({
     setCurrentDate(next);
   }
 
-  // Precompute O(N) map of slot to tasks instead of O(N*M) filtering
-  const tasksBySlot = useMemo(() => {
+  const tasksBySlot = useSelector(() => {
+    const allTasks = state$.tasks.get();
     const map: Record<string, Task[]> = {};
-    for (const t of tasks) {
+
+    for (const t of allTasks) {
       if (t.scheduled_date && t.scheduled_time) {
-        const hourKey = t.scheduled_time.slice(0, 2) + ":00";
-        const key = `${t.scheduled_date}-${hourKey}`;
+        const hourkey = t.scheduled_time.slice(0, 2) + ":00";
+        const key = `${t.scheduled_date}-${hourkey}`;
         if (!map[key]) map[key] = [];
         map[key].push(t);
       }
     }
     return map;
-  }, [tasks]);
+  });
 
   return (
     <div className="flex flex-col bg-white/70 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -88,11 +89,10 @@ export const CalendarView = observer(function CalendarView({
           <button
             type="button"
             onClick={() => setView("daily")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-              view === "daily"
-                ? "bg-white shadow-sm text-slate-800"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "daily"
+              ? "bg-white shadow-sm text-slate-800"
+              : "text-slate-500 hover:text-slate-700"
+              }`}
           >
             <Calendar size={13} />
             Daily
@@ -100,11 +100,10 @@ export const CalendarView = observer(function CalendarView({
           <button
             type="button"
             onClick={() => setView("weekly")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-              view === "weekly"
-                ? "bg-white shadow-sm text-slate-800"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "weekly"
+              ? "bg-white shadow-sm text-slate-800"
+              : "text-slate-500 hover:text-slate-700"
+              }`}
           >
             <CalendarDays size={13} />
             Weekly
@@ -166,15 +165,13 @@ const WeeklyGrid = memo(function WeeklyGrid({ weekDays, todayStr, hours, tasksBy
         return (
           <div
             key={dateStr}
-            className={`sticky top-0 bg-white/90 z-10 border-b border-slate-100 flex flex-col items-center py-2 text-xs font-semibold ${
-              isToday ? "text-indigo-600" : "text-slate-500"
-            }`}
+            className={`sticky top-0 bg-white/90 z-10 border-b border-slate-100 flex flex-col items-center py-2 text-xs font-semibold ${isToday ? "text-indigo-600" : "text-slate-500"
+              }`}
           >
             <span>{DAY_NAMES[i]}</span>
             <span
-              className={`mt-0.5 w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold ${
-                isToday ? "bg-indigo-600 text-white" : "text-slate-700"
-              }`}
+              className={`mt-0.5 w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold ${isToday ? "bg-indigo-600 text-white" : "text-slate-700"
+                }`}
             >
               {day.getUTCDate()}
             </span>
@@ -265,9 +262,8 @@ const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: Ca
       id={slotId}
       data-date={dateStr}
       data-hour={hour}
-      className={`border-t border-slate-50 h-14 p-0.5 relative transition-colors ${
-        isOver ? "bg-indigo-50 border-indigo-200 border" : "hover:bg-slate-50/60"
-      }`}
+      className={`border-t border-slate-50 h-14 p-0.5 relative transition-colors ${isOver ? "bg-indigo-50 border-indigo-200 border" : "hover:bg-slate-50/60"
+        }`}
     >
       {tasks.map((task) => {
         const cat = categories.find((c) => c.id === task.category_id);

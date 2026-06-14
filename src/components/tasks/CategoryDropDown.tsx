@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { Listbox, Transition } from '@headlessui/react';
+import { Listbox, ListboxButton, ListboxOptions, ListboxOption, Transition } from '@headlessui/react';
 import { Tag, ChevronDown, Check } from 'lucide-react';
 import type { Category } from '@/lib/state/store'; // Adjust import path if needed
 
@@ -17,13 +17,13 @@ export function CategoryDropdown({ categories, selectedId, onChange }: CategoryD
         <Listbox value={selectedId} onChange={onChange}>
             <div className="relative z-20">
                 {/* The Trigger Button */}
-                <Listbox.Button className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 hover:bg-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
+                <ListboxButton className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 hover:bg-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
                     <Tag size={14} className="text-slate-400" />
                     <span className="block truncate max-w-[120px]">
                         {selectedCategory ? selectedCategory.name : "No Category"}
                     </span>
                     <ChevronDown size={14} className="text-slate-400 ml-1" />
-                </Listbox.Button>
+                </ListboxButton>
 
                 {/* The Animated Dropdown Menu */}
                 <Transition
@@ -35,10 +35,10 @@ export function CategoryDropdown({ categories, selectedId, onChange }: CategoryD
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                 >
-                    <Listbox.Options className="absolute left-0 mt-2 w-48 overflow-hidden rounded-xl bg-white border border-slate-100 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none">
+                    <ListboxOptions className="absolute z-50 left-0 mt-2 w-48 overflow-hidden rounded-xl bg-white border border-slate-100 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none">
 
                         {/* "No Category" Option */}
-                        <Listbox.Option
+                        <ListboxOption
                             value=""
                             className={({ active }) =>
                                 `relative cursor-pointer select-none py-2 pl-10 pr-4 text-sm transition-colors ${active ? 'bg-slate-50 text-slate-900' : 'text-slate-600'
@@ -57,11 +57,11 @@ export function CategoryDropdown({ categories, selectedId, onChange }: CategoryD
                                     )}
                                 </>
                             )}
-                        </Listbox.Option>
+                        </ListboxOption>
 
                         {/* Render Actual Categories */}
                         {categories.map((category) => (
-                            <Listbox.Option
+                            <ListboxOption
                                 key={category.id}
                                 value={category.id}
                                 className={({ active }) =>
@@ -87,9 +87,9 @@ export function CategoryDropdown({ categories, selectedId, onChange }: CategoryD
                                         )}
                                     </>
                                 )}
-                            </Listbox.Option>
+                            </ListboxOption>
                         ))}
-                    </Listbox.Options>
+                    </ListboxOptions>
                 </Transition>
             </div>
         </Listbox>
