@@ -10,6 +10,7 @@ import { state$, Task } from "@/lib/state/store";
 
 interface TaskCardProps {
   task$: ObservableObject<Task>;
+  onTaskClick?: (taskId: string) => void;
 }
 
 export const TaskCardBody = observer(function TaskCardBody({ task$ }: TaskCardProps) {
@@ -24,9 +25,10 @@ export const TaskCardBody = observer(function TaskCardBody({ task$ }: TaskCardPr
       : null
   );
 
-  const handleToggle = () => {
+  const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
     // Direct mutation updates global state and triggers
     // only the necessary micro-renders automatically.
+    e.stopPropagation(); // stops the modal from opening when checking the circle
     task$.status.set(isDone ? "pending" : "done");
   };
 
@@ -69,7 +71,7 @@ export const TaskCardBody = observer(function TaskCardBody({ task$ }: TaskCardPr
   );
 });
 
-export const TaskCard = observer(function TaskCard({ task$ }: TaskCardProps) {
+export const TaskCard = observer(function TaskCard({ task$, onTaskClick }: TaskCardProps) {
   const id = task$.id.peek();
   const taskData = task$.peek();
 
@@ -83,6 +85,7 @@ export const TaskCard = observer(function TaskCard({ task$ }: TaskCardProps) {
       ref={setNodeRef}
       layout
       //  An entrance animation for new tasks
+      onClick={() => onTaskClick && onTaskClick(id)}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
 
@@ -102,7 +105,7 @@ export const TaskCard = observer(function TaskCard({ task$ }: TaskCardProps) {
       }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
       // Added `overflow-hidden` so inner text doesn't spill out while height shrinks to 0
-      className="flex items-center gap-3 p-4 bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow overflow-hidden"
+      className="flex items-center gap-3 p-4 bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
     >
 
       <TaskCardBody task$={task$} />
