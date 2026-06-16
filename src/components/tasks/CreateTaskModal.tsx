@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Fragment, useState } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
+import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
 import { observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
 import { X, Clock, AlignLeft, Tag } from 'lucide-react';
@@ -50,7 +50,7 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
             category_id: categoryId || null,
             scheduled_date: scheduledDate || null,
             scheduled_time: startTime || null, // Mapping start time to your existing field
-            // description: description.trim() || null, // Requires DB/Store update
+            description: description.trim() || null, // Requires DB/Store update
         });
 
         handleClose();
@@ -61,7 +61,7 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
         <Transition appear show={isOpen} as={Fragment}>
             <Dialog as="div" className="relative z-50" onClose={handleClose}>
                 {/* Backdrop */}
-                <Transition.Child
+                <TransitionChild
                     as={Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
@@ -71,12 +71,12 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm" />
-                </Transition.Child>
+                </TransitionChild>
 
                 {/* Modal Positioner */}
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-4 text-center">
-                        <Transition.Child
+                        <TransitionChild
                             as={Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95 translate-y-4"
@@ -85,7 +85,7 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
                             leaveFrom="opacity-100 scale-100 translate-y-0"
                             leaveTo="opacity-0 scale-95 translate-y-4"
                         >
-                            <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all border border-slate-100">
+                            <DialogPanel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all border border-slate-100">
                                 {/* Header / Close Button */}
                                 <div className="flex justify-end mb-2">
                                     <button
@@ -156,8 +156,8 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
                                         </button>
                                     </div>
                                 </form>
-                            </Dialog.Panel>
-                        </Transition.Child>
+                            </DialogPanel>
+                        </TransitionChild>
                     </div>
                 </div>
             </Dialog>

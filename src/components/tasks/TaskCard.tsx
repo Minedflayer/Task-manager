@@ -13,7 +13,7 @@ interface TaskCardProps {
   onTaskClick?: (taskId: string) => void;
 }
 
-export const TaskCardBody = observer(function TaskCardBody({ task$ }: TaskCardProps) {
+export const TaskCardBody = observer(function TaskCardBody({ task$, onTaskClick }: TaskCardProps) {
   // .get() subscribes this component directly to this specific task's properties
   const task = task$.get();
   const isDone = task.status === "done";
@@ -25,10 +25,9 @@ export const TaskCardBody = observer(function TaskCardBody({ task$ }: TaskCardPr
       : null
   );
 
-  const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // Direct mutation updates global state and triggers
-    // only the necessary micro-renders automatically.
-    e.stopPropagation(); // stops the modal from opening when checking the circle
+  // 1. Pass the mouse event and stop propagation
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
     task$.status.set(isDone ? "pending" : "done");
   };
 
@@ -85,7 +84,6 @@ export const TaskCard = observer(function TaskCard({ task$, onTaskClick }: TaskC
       ref={setNodeRef}
       layout
       //  An entrance animation for new tasks
-      onClick={() => onTaskClick && onTaskClick(id)}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
 
@@ -105,7 +103,8 @@ export const TaskCard = observer(function TaskCard({ task$, onTaskClick }: TaskC
       }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
       // Added `overflow-hidden` so inner text doesn't spill out while height shrinks to 0
-      className="flex items-center gap-3 p-4 bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
+      onClick={() => onTaskClick?.(id)}
+      className="flex items-center gap-3 p-4 bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow overflow-hidden"
     >
 
       <TaskCardBody task$={task$} />
