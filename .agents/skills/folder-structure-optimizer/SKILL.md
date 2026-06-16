@@ -1,5 +1,10 @@
 # Skill: Project Structure Optimizer
 
+---
+name: folder-structure-optimizer
+description: Guides agents through restructuring and optimizing project directories. Use when organizing workspace folders or cleaning up repository layouts.
+---
+
 ## Objective
 Analyze the current working directory, identify the project's primary technical stack, and reorganize the file system into a clean, scalable, and idiomatic folder structure.
 
