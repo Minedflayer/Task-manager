@@ -13,6 +13,7 @@
     "@dnd-kit/modifiers": "^9.0.0",
     "@headlessui/react": "^2.2.10",
     "@legendapp/state": "^2.1.15",
+    "@rolldown/binding-darwin-x64": "^1.1.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.107.0",
     "date-fns": "^4.4.0",

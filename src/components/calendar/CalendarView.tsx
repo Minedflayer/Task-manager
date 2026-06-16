@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, memo } from "react";
-import { observer } from "@legendapp/state/react";
+import { observer, useSelector } from "@legendapp/state/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, CalendarDays, Calendar, Plus } from "lucide-react";
 import { useDroppable } from "@dnd-kit/core";
@@ -44,19 +44,20 @@ export const CalendarView = observer(function CalendarView({
     setCurrentDate(next);
   }
 
-  // Precompute O(N) map of slot to tasks instead of O(N*M) filtering
-  const tasksBySlot = useMemo(() => {
+  const tasksBySlot = useSelector(() => {
+    const allTasks = state$.tasks.get();
     const map: Record<string, Task[]> = {};
-    for (const t of tasks) {
+
+    for (const t of allTasks) {
       if (t.scheduled_date && t.scheduled_time) {
-        const hourKey = t.scheduled_time.slice(0, 2) + ":00";
-        const key = `${t.scheduled_date}-${hourKey}`;
+        const hourkey = t.scheduled_time.slice(0, 2) + ":00";
+        const key = `${t.scheduled_date}-${hourkey}`;
         if (!map[key]) map[key] = [];
         map[key].push(t);
       }
     }
     return map;
-  }, [tasks]);
+  });
 
   return (
     <Rnd

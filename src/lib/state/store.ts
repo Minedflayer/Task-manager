@@ -6,6 +6,7 @@ export interface Category {
   id: string;
   name: string;
   color: string;
+  updated_at?: string;
 }
 
 export interface Task {
@@ -15,16 +16,29 @@ export interface Task {
   category_id: string | null;
   scheduled_date?: string | null;
   scheduled_time?: string | null;
+  end_time?: string | null
+  description?: string | null;
+  updated_at?: string;
+}
+
+export interface SyncOperation {
+  id: string; // The ID of the item
+  record_id: string;
+  table: 'tasks' | 'categories';
+  action: 'UPSERT' | 'DELETE';
+  payload?: any; // The full object for UPSERT
 }
 
 export interface AppState {
   tasks: Task[];
   categories: Category[];
+  syncQueue: SyncOperation[];
 }
 
 export const state$ = observable<AppState>({
   tasks: [],
-  categories: []
+  categories: [],
+  syncQueue: []
 });
 
 // Configure IndexedDB persistence for offline-first capabilities
