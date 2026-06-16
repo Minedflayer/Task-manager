@@ -5,8 +5,8 @@ import { Dialog, Transition } from '@headlessui/react';
 import { observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
 import { X, Clock, AlignLeft, Tag } from 'lucide-react';
-import { CategoryDropdown } from './CategoryDropDown';
 import { DatePickerDropdown } from './DatePickerDropdown';
+import { CategoryDropdown } from './CategoryDropDown';
 import { TimePickerDropdown } from './TimePickerDropdown';
 
 interface CreateTaskModalProps {
@@ -110,15 +110,19 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
                                     </div>
 
                                     {/* Date & Time Row */}
-                                    <div className="flex items-center gap-3 text-slate-600">
-                                        <Clock size={18} className="text-slate-400" />
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <DatePickerDropdown selectedDate={scheduledDate} onChange={setScheduledDate} />
-                                            <TimePickerDropdown selectedTime={startTime} onChange={setStartTime} />
-                                            <span className="text-slate-400 font-medium">-</span>
-                                            <TimePickerDropdown selectedTime={endTime} onChange={setEndTime} />
+                                    <div className="relative z-30">
+                                        <div className="flex items-center gap-3 text-slate-600">
+                                            <Clock size={18} className="text-slate-400" />
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <DatePickerDropdown selectedDate={scheduledDate} onChange={setScheduledDate} />
+                                                <TimePickerDropdown selectedTime={startTime} onChange={setStartTime} />
+                                                <span className="text-slate-400 font-medium">-</span>
+                                                <TimePickerDropdown selectedTime={endTime} onChange={setEndTime} />
+                                            </div>
                                         </div>
+
                                     </div>
+
 
                                     {/* Category Row */}
                                     <div className="flex items-center gap-3 text-slate-600">
