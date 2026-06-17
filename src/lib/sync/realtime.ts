@@ -1,14 +1,25 @@
 import { supabase } from '@/lib/supabase';
 import { state$, Category, Task, SyncOperation } from '@/lib/state/store';
+import { generateId } from '@/utils/generateId';
+import { stat } from 'fs';
 
 let isApplyingRemoteChange = false;
 
-// 1. In-memory cache for state diffing
+
+/**
+ * @constant knownTasks In-memory cache for state diffing
+ * @constant knownCategories In-memory cache for state diffing
+ */
 const knownTasks = new Map<string, string>();
 const knownCategories = new Map<string, string>();
 
-// Generates a predictable hash for diffing, deliberately ignoring the 'updated_at' 
-// timestamp so our own timestamp mutations don't trigger recursive diffing loops.
+
+/**
+ * Generates a predictable hash for diffing, deliberately ignoring the 'updated_at'
+ * timestamp so our own timestamp mutations don't trigger recursive diffing loops. 
+ * @param obj 
+ * @returns 
+ */
 function getHash(obj: any) {
   const copy = { ...obj };
   delete copy.updated_at;
@@ -34,7 +45,6 @@ function debounce(func: Function, wait: number) {
  * - Executes Supabase operations (UPSERT/DELETE) in sequence.
  * - Safely drains successfully applied operations from the queue while handling remote/local synchronization flags.
  */
-
 export const processQueue = debounce(doProcessQueue, 500);
 async function doProcessQueue() {
   if (typeof window !== 'undefined' && !window.navigator.onLine) {
@@ -58,10 +68,18 @@ async function doProcessQueue() {
     try {
       if (op.action === 'UPSERT') {
         const { error } = await supabase.from(op.table).upsert(op.payload);
-        if (!error) successfulIds.add(op.record_id);
+        if (!error) {
+          successfulIds.add(op.record_id);
+        } else {
+          console.error(`[Sync] Supabase UPSERT Error for ${op.record_id}:`, error); // <-- Add this
+        }
       } else if (op.action === 'DELETE') {
         const { error } = await supabase.from(op.table).delete().eq('id', op.record_id);
-        if (!error) successfulIds.add(op.record_id);
+        if (!error) {
+          successfulIds.add(op.record_id);
+        } else {
+          console.error(`[Sync] Supabase DELETE Error for ${op.record_id}:`, error); // <-- Add this
+        }
       }
     } catch (err) {
       console.error(`[Sync] Operation error on ${op.record_id}:`, err);
@@ -166,7 +184,17 @@ export function setupRealtimeSync(userId: string): () => void {
     )
     .subscribe();
 
-  // 2. Diffing function for outgoing changes
+  /**
+   * Diffing function for outgoing changes (Local -> Remote)
+   * 1. Additions and modifications are detected and added to the sync queue.
+   * 2. Deletions are detected and added to the sync queue.
+   * 3. Deduplicates entries in the sync queue, only keeping the latest.
+   * 4. Updates the timestamp of the local state to prevent recursive diffing loops.
+   * 5. Extracts the user ID from the current user
+   * 6. Builds the correct payload for the sync queue
+   * @param table - The table to sync (tasks or categories)
+   * @param currentArray - The current array of items in the table
+   */
   const handleOutgoingChange = (table: 'tasks' | 'categories', currentArray: any[]) => {
     if (isApplyingRemoteChange) return;
 
@@ -197,7 +225,7 @@ export function setupRealtimeSync(userId: string): () => void {
           }
 
           newQueue.push({
-            id: crypto.randomUUID(), // Unique ID for the queue array
+            id: generateId(), // Unique ID for the queue array
             record_id: item.id,      // The target database ID
             table,
             action: 'UPSERT',
@@ -216,7 +244,7 @@ export function setupRealtimeSync(userId: string): () => void {
           if (existingIndex >= 0) newQueue.splice(existingIndex, 1);
 
           newQueue.push({
-            id: crypto.randomUUID(),
+            id: generateId(),
             record_id: id,
             table,
             action: 'DELETE',
@@ -254,4 +282,58 @@ export function setupRealtimeSync(userId: string): () => void {
       window.removeEventListener('online', onOnline);
     }
   };
+}
+
+
+export async function fetchInitialData(userId: string) {
+  // Tell the sync engine to ignore these changes so it doesn't push them back to Supabase
+  isApplyingRemoteChange = true;
+
+  try {
+    const [tasksResponse, categoriesResponse] = await Promise.all([
+      supabase.from('tasks').select('*').eq('user_id', userId),
+      supabase.from('categories').select('*').eq('user_id', userId)
+
+    ]);
+
+    if (tasksResponse.error) console.error("Error fetching tasks", tasksResponse.error);
+    if (categoriesResponse.error) console.error("Error fetching tasks", categoriesResponse.error);
+
+    // Remote data from Supabase
+    const remoteTasks = tasksResponse.data || [];
+    const remoteCategories = categoriesResponse.data || [];
+
+
+    // Merge tasks into Legend-State
+    const currentTasks = state$.tasks.peek() || [];
+    const taskMap = new Map(currentTasks.map(t => [t.id, t]));
+
+    remoteTasks.forEach(remoteTask => {
+      const localTask = taskMap.get(remoteTask.id);
+      //Only overwrite if the remote task is newer or it doeesnt exist locally
+      if (!localTask || new Date(remoteTask.updated_at) > new Date(localTask.updated_at || 0)) {
+        taskMap.set(remoteTask.id, remoteTask);
+        knownTasks.set(remoteTask.id, getHash(remoteTask));
+      }
+    });
+    state$.tasks.set(Array.from(taskMap.values()));
+
+
+
+    const currentCategories = state$.categories.peek() || [];
+    const categoryMap = new Map(currentCategories.map(c => [c.id, c]));
+
+
+    remoteCategories.forEach(remoteCat => {
+      const localCat = categoryMap.get(remoteCat.id);
+      if (!localCat || new Date(remoteCat.updated_at) > new Date(localCat.updated_at || 0)) {
+        categoryMap.set(remoteCat.id, remoteCat);
+        knownCategories.set(remoteCat.id, getHash(remoteCat)); // Update diff cache
+      }
+    });
+    state$.categories.set(Array.from(categoryMap.values()));
+
+  } finally {
+    isApplyingRemoteChange = false;
+  }
 }

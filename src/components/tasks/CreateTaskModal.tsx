@@ -8,6 +8,9 @@ import { X, Clock, AlignLeft, Tag } from 'lucide-react';
 import { CategoryDropdown } from './CategoryDropDown';
 import { DatePickerDropdown } from './DatePickerDropdown';
 import { TimePickerDropdown } from './TimePickerDropdown';
+import { generateId } from '@/utils/generateId';
+import { v4 as uuidv4 } from 'uuid';
+
 
 interface CreateTaskModalProps {
     isOpen: boolean
@@ -38,13 +41,15 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
         onClose();
     }
 
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!title.trim()) return;
+        const newTaskId = uuidv4();
 
         state$.tasks.push({
-            id: crypto.randomUUID(),
+            id: generateId(),
             title: title.trim(),
             status: 'pending',
             category_id: categoryId || null,

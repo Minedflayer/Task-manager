@@ -13,7 +13,6 @@
     "@dnd-kit/modifiers": "^9.0.0",
     "@headlessui/react": "^2.2.10",
     "@legendapp/state": "^2.1.15",
-    "@rolldown/binding-darwin-x64": "^1.1.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.107.0",
     "date-fns": "^4.4.0",
@@ -22,7 +21,8 @@
     "next": "16.2.7",
     "react": "19.2.4",
     "react-day-picker": "^10.0.1",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -32,6 +32,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/testing-library__jest-dom": "^5.14.9",
+    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
