@@ -69,6 +69,7 @@ async function doProcessQueue() {
         const { error } = await supabase.from(op.table).upsert(op.payload);
         if (!error) {
           successfulIds.add(op.record_id);
+
         } else {
           console.error(`[Sync] Supabase UPSERT Error for ${op.record_id}:`, error); // <-- Add this
         }
@@ -76,6 +77,11 @@ async function doProcessQueue() {
         const { error } = await supabase.from(op.table).delete().eq('id', op.record_id);
         if (!error) {
           successfulIds.add(op.record_id);
+
+          if (op.table === 'categories') {
+            console.log(`[Sync] Successfully removed category in Supabase: ${op.record_id}`);
+          }
+
         } else {
           console.error(`[Sync] Supabase DELETE Error for ${op.record_id}:`, error); // <-- Add this
         }
