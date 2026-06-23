@@ -43,7 +43,7 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
         }
     }, [taskId]);
 
-    if (!taskId || !task) return null;
+    // if (!taskId || !task) return null;
 
     const handleSave = () => {
         const tasks = state$.tasks.peek();
@@ -77,7 +77,7 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
     };
 
     // Helper to format the date string to match the image format
-    const formattedDate = task.scheduled_date
+    const formattedDate = task?.scheduled_date
         ? new Date(task.scheduled_date).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })
         : "No date set";
 
@@ -87,14 +87,14 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
                 {/* Backdrop */}
                 <TransitionChild
                     as={Fragment}
-                    enter="ease-out duration-200"
+                    enter="transition-opacity ease-out duration-200"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
-                    leave="ease-in duration-150"
+                    leave="transition-opacity ease-in duration-150"
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm" />
+                    <div className="fixed inset-0 bg-slate-900/20" />
                 </TransitionChild>
 
                 {/* Modal Positioner */}
@@ -102,10 +102,10 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
                     <div className="flex min-h-full items-center justify-center p-4 text-center">
                         <TransitionChild
                             as={Fragment}
-                            enter="ease-out duration-300"
+                            enter="transition-all ease-out duration-300"
                             enterFrom="opacity-0 scale-95 translate-y-4"
                             enterTo="opacity-100 scale-100 translate-y-0"
-                            leave="ease-in duration-200"
+                            leave="transition-all ease-in duration-200"
                             leaveFrom="opacity-100 scale-100 translate-y-0"
                             leaveTo="opacity-0 scale-95 translate-y-4"
                         >
@@ -147,7 +147,7 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
                                                 placeholder="Task title"
                                             />
                                             <div className="text-sm text-slate-600">
-                                                {formattedDate} {task.scheduled_time ? `• ${task.scheduled_time}` : ''}
+                                                {formattedDate} {task?.scheduled_time ? `• ${task.scheduled_time}` : ''}
                                             </div>
                                         </div>
                                     </div>

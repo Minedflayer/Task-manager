@@ -290,7 +290,7 @@ export function setupRealtimeSync(userId: string): () => void {
 }
 
 
-export async function fetchInitialData(userId: string) {
+export async function fetchInitialData(userId: string, retries = 1) {
   // Tell the sync engine to ignore these changes so it doesn't push them back to Supabase
   isApplyingRemoteChange = true;
 
@@ -300,6 +300,15 @@ export async function fetchInitialData(userId: string) {
       supabase.from('categories').select('*').eq('user_id', userId)
 
     ]);
+
+    // Handle the Supabase JWT clock-skew issue with a retry
+    const hasTimeSkewError = tasksResponse.error?.code === 'PGRST303' || categoriesResponse.error?.code === 'PGRST303';
+
+    if (hasTimeSkewError && retries > 0) {
+      console.warn("JWT issued in the future. Retrying fetch to allow server clocks to sync...");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return fetchInitialData(userId, retries - 1);
+    }
 
     if (tasksResponse.error) console.error("Error fetching tasks", tasksResponse.error);
     if (categoriesResponse.error) console.error("Error fetching tasks", categoriesResponse.error);
