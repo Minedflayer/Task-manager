@@ -41,6 +41,27 @@ export const Sidebar = observer(function Sidebar() {
     }
   };
 
+  const handleDeleteCategory = (categoryId: string, categoryName: string) => {
+    if (confirm(`Are you sure you want to delete the "${categoryName}" category?`)) {
+      // Remove category from global state
+      const currentCategories = state$.categories.get();
+      state$.categories.set(currentCategories.filter(c => c.id !== categoryId));
+
+      // Clean up
+      const tasks = state$.tasks.peek();
+      const now = new Date().toISOString;
+
+      tasks.forEach((task, index) => {
+        if (task.category_id === categoryId) {
+          state$.tasks[index].category_id.set(null);
+          state$.tasks[index].updated_at.set(now);
+        }
+
+      });
+
+    }
+  }
+
   return (
     <aside className="w-64 bg-white/60 backdrop-blur-xl border-r border-slate-200 h-screen p-4 flex flex-col gap-6">
       {loading ? (
@@ -66,7 +87,6 @@ export const Sidebar = observer(function Sidebar() {
               </span>
             </div>
           </div>
-
           <button
             onClick={handleSignOut}
             className="mt-1 w-full flex items-center justify-center gap-2 py-1.5 px-3 bg-white hover:bg-red-50 border border-slate-200 text-slate-600 hover:text-red-600 rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
@@ -86,7 +106,7 @@ export const Sidebar = observer(function Sidebar() {
               <span className="text-[10px] text-indigo-600 font-medium mt-1 leading-none bg-indigo-50 px-1.5 py-0.5 rounded-full w-max">Guest Mode</span>
             </div>
           </div>
-          
+
           <button
             onClick={handleExitGuest}
             className="mt-1 w-full flex items-center justify-center gap-2 py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
@@ -110,13 +130,26 @@ export const Sidebar = observer(function Sidebar() {
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="flex items-center gap-3 px-2 py-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors text-sm text-slate-600 font-medium"
+              className="group flex items-center justify-between px-2 py-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors text-sm text-slate-600 font-medium"
             >
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: cat.color }} 
-              />
-              {cat.name}
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: cat.color }}
+                />
+                {cat.name}
+              </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteCategory(cat.id, cat.name);
+                }}
+                className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 rounded transition-all"
+                title="Delete Category"
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
           ))}
         </div>
@@ -124,7 +157,7 @@ export const Sidebar = observer(function Sidebar() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-slate-200">
-        <button 
+        <button
           onClick={async () => {
             if (confirm('Are you sure you want to clear all tasks?')) {
               state$.tasks.set([]);
