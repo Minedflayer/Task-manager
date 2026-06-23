@@ -5,6 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { AuthPage } from "@/components/auth/AuthPage";
 import { setupRealtimeSync } from "@/lib/sync/realtime";
+import { fetchInitialData } from '@/lib/sync/realtime';
 
 interface AuthGateProps {
   children: React.ReactNode;
@@ -44,6 +45,7 @@ export function AuthGate({ children }: AuthGateProps) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setUser(session?.user ?? null);
+
         if (session?.user) {
           // If they were a guest, migrate their data
           const guestFlag = localStorage.getItem("task-manager-guest");
@@ -59,6 +61,12 @@ export function AuthGate({ children }: AuthGateProps) {
           localStorage.removeItem("task-manager-guest");
           setIsGuest(false);
           window.dispatchEvent(new Event("guest-state-change"));
+
+          try {
+            await fetchInitialData(session.user.id);
+          } catch (err) {
+            console.error("Failed to fetch");
+          }
 
           // Setup realtime sync
           if (!cleanupSync) {

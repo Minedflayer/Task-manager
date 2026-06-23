@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { state$, Category, Task, SyncOperation } from '@/lib/state/store';
 import { generateId } from '@/utils/generateId';
-import { stat } from 'fs';
 
 let isApplyingRemoteChange = false;
 

@@ -9,7 +9,6 @@ import { CategoryDropdown } from './CategoryDropDown';
 import { DatePickerDropdown } from './DatePickerDropdown';
 import { TimePickerDropdown } from './TimePickerDropdown';
 import { generateId } from '@/utils/generateId';
-import { v4 as uuidv4 } from 'uuid';
 
 
 interface CreateTaskModalProps {
@@ -17,7 +16,7 @@ interface CreateTaskModalProps {
     onClose: () => void;
 }
 
-export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
+export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
     const [title, setTitle] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [scheduledDate, setScheduledDate] = useState('');
@@ -46,7 +45,7 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
         e.preventDefault();
 
         if (!title.trim()) return;
-        const newTaskId = uuidv4();
+        //const newTaskId = generateId();
 
         state$.tasks.push({
             id: generateId(),
@@ -68,14 +67,14 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
                 {/* Backdrop */}
                 <TransitionChild
                     as={Fragment}
-                    enter="ease-out duration-300"
+                    enter="transition-opacity ease-out duration-300"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
-                    leave="ease-in duration-200"
+                    leave="transition-opacity ease-in duration-200"
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm" />
+                    <div className="fixed inset-0 bg-slate-900/40" />
                 </TransitionChild>
 
                 {/* Modal Positioner */}
@@ -83,10 +82,10 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
                     <div className="flex min-h-full items-center justify-center p-4 text-center">
                         <TransitionChild
                             as={Fragment}
-                            enter="ease-out duration-300"
+                            enter="transition-all ease-out duration-300"
                             enterFrom="opacity-0 scale-95 translate-y-4"
                             enterTo="opacity-100 scale-100 translate-y-0"
-                            leave="ease-in duration-200"
+                            leave="transition-all ease-in duration-200"
                             leaveFrom="opacity-100 scale-100 translate-y-0"
                             leaveTo="opacity-0 scale-95 translate-y-4"
                         >
@@ -110,7 +109,7 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
                                             className="w-full text-2xl font-medium text-slate-800 bg-transparent border-0 border-b-2 border-transparent hover:border-slate-100 focus:border-indigo-500 focus:ring-0 px-0 py-2 transition-colors placeholder:text-slate-400"
-                                            autoFocus
+
                                         />
                                     </div>
 
@@ -126,9 +125,9 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
                                     </div>
 
                                     {/* Category Row */}
-                                    <div className="flex items-center gap-3 text-slate-600">
+                                    <div className="flex items-center gap-3 text-slate-600 relative z-10">
                                         <Tag size={18} className="text-slate-400" />
-                                        <CategoryDropdown categories={categories} selectedId={categoryId} onChange={setCategoryId} />
+                                        <CategoryDropdown selectedId={categoryId} onChange={setCategoryId} />
                                     </div>
 
                                     {/* Description Row (Visual Only for now) */}
@@ -169,4 +168,4 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
         </Transition>
     );
 
-});
+};
