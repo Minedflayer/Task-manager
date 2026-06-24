@@ -26,16 +26,27 @@ export function AuthGate({ children }: AuthGateProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      //setLoading(false);
-    })
+    let isMounted = true;
+
+    // 1. Establish a strict 1.5-second failsafe
+    const fallbackTimeout = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 1500);
+
+    // 2. Check current session
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (isMounted) setUser(session?.user ?? null);
+      })
       .catch((err) => {
         console.error("Session check failed: ", err);
       })
       .finally(() => {
-        setLoading(false);
+        // 3. Clear the timeout if Supabase responds in time
+        if (isMounted) {
+          setLoading(false);
+          clearTimeout(fallbackTimeout);
+        }
       });
 
     // Listen for guest state changes (e.g. from the sidebar exit guest action)
