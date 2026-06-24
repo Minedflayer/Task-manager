@@ -29,8 +29,14 @@ export function AuthGate({ children }: AuthGateProps) {
     // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      setLoading(false);
-    });
+      //setLoading(false);
+    })
+      .catch((err) => {
+        console.error("Session check failed: ", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
 
     // Listen for guest state changes (e.g. from the sidebar exit guest action)
     const handleGuestChange = () => {

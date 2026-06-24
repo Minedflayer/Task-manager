@@ -74,12 +74,17 @@ async function doProcessQueue() {
           console.error(`[Sync] Supabase UPSERT Error for ${op.record_id}:`, error); // <-- Add this
         }
       } else if (op.action === 'DELETE') {
-        const { error } = await supabase.from(op.table).delete().eq('id', op.record_id);
+        // Force Supabase to return the exact number of rows deleted
+        const { error, count } = await supabase.from(op.table).delete({ count: 'exact' }).eq('id', op.record_id);
         if (!error) {
           successfulIds.add(op.record_id);
 
           if (op.table === 'categories') {
             console.log(`[Sync] Successfully removed category in Supabase: ${op.record_id}`);
+          }
+
+          if (op.table === 'tasks') {
+            console.log(`[Sync] Database deleted ${count} row(s) for task ID: ${op.record_id}`);
           }
 
         } else {
@@ -333,10 +338,8 @@ export async function fetchInitialData(userId: string, retries = 1) {
     state$.tasks.set(Array.from(taskMap.values()));
 
 
-
     const currentCategories = state$.categories.peek() || [];
     const categoryMap = new Map(currentCategories.map(c => [c.id, c]));
-
 
     remoteCategories.forEach(remoteCat => {
       const localCat = categoryMap.get(remoteCat.id);
