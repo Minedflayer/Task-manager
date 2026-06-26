@@ -8,6 +8,8 @@ import { useDroppable } from "@dnd-kit/core";
 import { state$, Task } from "@/lib/state/store";
 import { getWeekDays, getDayHours, formatDate } from "@/lib/calendar/calendarUtils";
 
+
+
 // Abbreviated day names for column headers
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -266,27 +268,41 @@ const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: Ca
       className={`border-t border-slate-50 h-14 p-0.5 relative transition-colors ${isOver ? "bg-indigo-50 border-indigo-200 border" : "hover:bg-slate-50/60"
         }`}
     >
-      {tasks.map((task) => {
-        const cat = categories.find((c) => c.id === task.category_id);
-        return (
-          <div
-            key={task.id}
-            className="absolute inset-x-0.5 inset-y-0.5 rounded-lg px-2 py-1 text-xs font-medium truncate flex items-center gap-1.5"
-            style={{
-              backgroundColor: cat ? `${cat.color}cc` : "#e2e8f0",
-              color: "#1e293b",
-            }}
-          >
-            {cat && (
-              <span
-                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ backgroundColor: cat.color }}
-              />
-            )}
-            {task.title}
-          </div>
-        );
-      })}
+      <AnimatePresence>
+        {tasks.map((task) => {
+          const cat = categories.find((c) => c.id === task.category_id);
+          return (
+            <motion.div
+              key={task.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{
+                opacity: 0,
+                scale: 0.95,
+                transition: {
+                  delay: 1.5,
+                  duration: 0.3
+
+                }
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="absolute inset-x-0.5 inset-y-0.5 rounded-lg px-2 py-1 text-xs font-medium truncate flex items-center gap-1.5"
+              style={{
+                backgroundColor: cat ? `${cat.color}cc` : "#e2e8f0",
+                color: "#1e293b",
+              }}
+            >
+              {cat && (
+                <span
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: cat.color }}
+                />
+              )}
+              {task.title}
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
     </div>
   );
 });
