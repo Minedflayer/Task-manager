@@ -46,9 +46,10 @@ export const CalendarView = observer(function CalendarView({
     const map: Record<string, Task[]> = {};
 
     for (const t of allTasks) {
+      if (t.status === 'done') continue;
       if (t.scheduled_date && t.scheduled_time) {
         const hourkey = t.scheduled_time.slice(0, 2) + ":00";
-        const key = `${t.scheduled_date}-${hourkey}`;
+        const key = `${t.scheduled_date}-${hourkey}`; // The correct time slot
         if (!map[key]) map[key] = [];
         map[key].push(t);
       }
