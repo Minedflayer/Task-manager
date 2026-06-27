@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { AuthPage } from "@/components/auth/AuthPage";
 import { setupRealtimeSync } from "@/lib/sync/realtime";
 import { fetchInitialData } from '@/lib/sync/realtime';
+import { globalUser$ } from '@/lib/state/store';
 
 interface AuthGateProps {
   children: React.ReactNode;
@@ -28,21 +29,25 @@ export function AuthGate({ children }: AuthGateProps) {
   useEffect(() => {
     let isMounted = true;
 
-    // 1. Establish a strict 1.5-second failsafe
+    // Establish a strict 1.5-second failsafe
     const fallbackTimeout = setTimeout(() => {
       if (isMounted) setLoading(false);
     }, 1500);
 
-    // 2. Check current session
+    // Check current session
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
-        if (isMounted) setUser(session?.user ?? null);
+        if (isMounted) {
+          setUser(session?.user ?? null);
+          globalUser$.set(session?.user ?? null); // Sync to global store
+
+        }
       })
       .catch((err) => {
         console.error("Session check failed: ", err);
       })
       .finally(() => {
-        // 3. Clear the timeout if Supabase responds in time
+        // Clear the timeout if Supabase responds in time
         if (isMounted) {
           setLoading(false);
           clearTimeout(fallbackTimeout);
@@ -62,6 +67,7 @@ export function AuthGate({ children }: AuthGateProps) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setUser(session?.user ?? null);
+        globalUser$.set(session?.user ?? null); // Sync to global store
 
         if (session?.user) {
           // If they were a guest, migrate their data
@@ -132,3 +138,4 @@ export function AuthGate({ children }: AuthGateProps) {
 
   return <>{children}</>;
 }
+

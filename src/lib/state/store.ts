@@ -1,6 +1,7 @@
 import { observable } from '@legendapp/state';
 import { persistObservable, configureObservablePersistence } from '@legendapp/state/persist';
 import { ObservablePersistIndexedDB } from '@legendapp/state/persist-plugins/indexeddb';
+import type { User } from '@supabase/supabase-js';
 
 export interface Category {
   id: string;
@@ -58,3 +59,5 @@ if (typeof window !== 'undefined') {
     local: 'task-manager-offline-store',
   });
 }
+
+export const globalUser$ = observable<User | null>(null);
