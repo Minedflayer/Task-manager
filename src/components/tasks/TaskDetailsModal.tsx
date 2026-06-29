@@ -1,5 +1,5 @@
 "use client";
-
+import { CategoryDropdown } from './CategoryDropDown';
 import { useState, useEffect, Fragment } from 'react';
 import { observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
@@ -13,7 +13,7 @@ import {
     List as ListIcon,
     Calendar,
     CalendarCheck,
-    Lock
+    Lock,
 } from 'lucide-react';
 
 interface TaskDetailsModalProps {
@@ -24,11 +24,14 @@ interface TaskDetailsModalProps {
 export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onClose }: TaskDetailsModalProps) {
     const [draftTitle, setDraftTitle] = useState('');
     const [draftDescription, setDraftDescription] = useState('');
+    const [draftCategoryId, setDraftCategoryId] = useState('');
 
     // We can fetch the task and category data to display dynamically
     const task = taskId ? state$.tasks.get().find(t => t.id === taskId) : null;
     const categories = state$.categories.get();
-    const category = task?.category_id ? categories.find(c => c.id === task.category_id) : null;
+
+    // const category = task?.category_id ? categories.find(c => c.id === task.category_id) : null;
+    const category = draftCategoryId ? categories.find(c => c.id === draftCategoryId) : null;
 
     useEffect(() => {
         // Find task in the store
@@ -38,6 +41,7 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
             if (task) {
                 setDraftTitle(task.title || '');
                 setDraftDescription(task.description || '');
+                setDraftCategoryId(task.category_id || '');
             }
 
         }
@@ -54,6 +58,7 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
                 ...currentTask,
                 title: draftTitle,
                 description: draftDescription,
+                category_id: draftCategoryId || null,
                 updated_at: new Date().toISOString()
             });
         }
@@ -167,12 +172,18 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
                                         </div>
 
                                         {/* Category Link */}
-                                        <div className="flex items-center gap-4">
-                                            <ListIcon className="w-5 h-5 text-slate-500 flex-shrink-0" />
-                                            <span className="text-sm text-blue-600 font-medium cursor-pointer hover:underline">
-                                                {category?.name || "No list selected"}
-                                            </span>
+                                        <div className='flex items-center gap-4 relative z-2'>
+                                            <div className='-ml-3'>
+                                                <CategoryDropdown
+                                                    selectedId={draftCategoryId}
+                                                    onChange={setDraftCategoryId}
+
+                                                />
+
+                                            </div>
+
                                         </div>
+
 
                                         {/* Generic Visual Mocks from Image */}
                                         <div className="flex items-center gap-4">

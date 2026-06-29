@@ -55,7 +55,18 @@ export const Sidebar = observer(function Sidebar() {
 
   const handleSignOut = async () => {
     if (confirm('Are you sure you want to sign out?')) {
-      await supabase.auth.signOut();
+      try {
+        await supabase.auth.signOut()
+
+      } catch (error) {
+        console.log("Supabase signout failed, forcing local logout:", error);
+      } finally {
+        state$.tasks.set([]);
+        state$.categories.set([]);
+        globalUser$.set(null);
+
+        window.location.reload();
+      };
     }
   };
 
