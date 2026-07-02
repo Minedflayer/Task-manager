@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, memo } from "react";
+import React, { useState, useMemo, memo } from "react";
 import { observer, useSelector } from "@legendapp/state/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, CalendarDays, Calendar, Plus } from "lucide-react";
@@ -8,6 +8,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { state$, Task } from "@/lib/state/store";
 import { getWeekDays, getDayHours, formatDate } from "@/lib/calendar/calendarUtils";
 import { CreateTaskModal } from "../tasks/CreateTaskModal";
+import { TaskDetailsModal } from "../tasks/TaskDetailsModal";
 
 
 
@@ -257,16 +258,20 @@ interface CalendarSlotProps {
 const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: CalendarSlotProps) {
   const slotId = `slot-${dateStr}-${hour}`;
   const categories = state$.categories.get();
-
   const { setNodeRef, isOver } = useDroppable({ id: slotId });
-
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  // Listener for adding a new event in the calendar
+  // Listener for adding a new event in the calendar view
   const handleAddClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsModalOpen(true);
   };
+
+  const handleTaskClick = (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation();
+    setSelectedTaskId(taskId);
+  }
 
   return (
     <>
@@ -284,6 +289,7 @@ const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: Ca
             return (
               <motion.div
                 key={task.id}
+                onClick={(e) => handleTaskClick(e, task.id)}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{
@@ -313,17 +319,22 @@ const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: Ca
             );
           })}
 
-          <button
-            onClick={handleAddClick}
-            className="absolute inset-0 m-auto w-6 h-6 flex items-center justify-center rounded-md bg-white/90 text-slate-400 
-        shadow-sm border border-slate-200 opacity-0 group-hover:opacity-100 hover:text-indigo-600 
-        hover:border-indigo-300 hover:bg-white transition-all z-10 cursor-pointer"
-            title={`Add task at ${hour}`}
-          >
+          {/* Only render the Add button no task exist in the slot */}
+          {tasks.length === 0 && (
+            <button
+              onClick={handleAddClick}
+              className="absolute inset-0 m-auto w-6 h-6 flex items-center justify-center rounded-md bg-white/90 text-slate-400 
+            shadow-sm border border-slate-200 opacity-0 group-hover:opacity-100 hover:text-indigo-600 
+            hover:border-indigo-300 hover:bg-white transition-all z-10 cursor-pointer"
+              title={`Add task at ${hour}`}
+            >
 
 
-            <Plus size={14} strokeWidth={3} />
-          </button>
+              <Plus size={14} strokeWidth={3} />
+            </button>
+
+          )}
+
 
         </AnimatePresence>
       </div>
@@ -337,6 +348,16 @@ const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: Ca
           onClose={() => setIsModalOpen(false)}
         />
       )}
+
+      {selectedTaskId && (
+        <TaskDetailsModal
+          taskId={selectedTaskId}
+          isOpen={!!selectedTaskId}
+          onClose={() => (setSelectedTaskId(null))}
+
+        />
+      )}
+
     </>
 
   );

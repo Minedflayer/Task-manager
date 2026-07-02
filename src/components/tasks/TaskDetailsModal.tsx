@@ -19,9 +19,10 @@ import {
 interface TaskDetailsModalProps {
     taskId: string | null;
     onClose: () => void;
+    isOpen: boolean;
 }
 
-export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onClose }: TaskDetailsModalProps) {
+export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onClose, isOpen }: TaskDetailsModalProps) {
     const [draftTitle, setDraftTitle] = useState('');
     const [draftDescription, setDraftDescription] = useState('');
     const [draftCategoryId, setDraftCategoryId] = useState('');
