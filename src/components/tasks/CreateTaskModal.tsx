@@ -14,9 +14,11 @@ import { generateId } from '@/utils/generateId';
 interface CreateTaskModalProps {
     isOpen: boolean
     onClose: () => void;
+    initialDate?: string;
+    initialTime?: string;
 }
 
-export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
+export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime = '' }: CreateTaskModalProps) {
     const [title, setTitle] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [scheduledDate, setScheduledDate] = useState('');

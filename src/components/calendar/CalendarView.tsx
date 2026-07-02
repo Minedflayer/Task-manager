@@ -3,10 +3,11 @@
 import { useState, useMemo, memo } from "react";
 import { observer, useSelector } from "@legendapp/state/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, CalendarDays, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, Calendar, Plus } from "lucide-react";
 import { useDroppable } from "@dnd-kit/core";
 import { state$, Task } from "@/lib/state/store";
 import { getWeekDays, getDayHours, formatDate } from "@/lib/calendar/calendarUtils";
+import { CreateTaskModal } from "../tasks/CreateTaskModal";
 
 
 
@@ -161,14 +162,14 @@ const WeeklyGrid = memo(function WeeklyGrid({ weekDays, todayStr, hours, tasksBy
   return (
     <div className="grid" style={{ gridTemplateColumns: "56px repeat(7, 1fr)" }}>
       {/* Day header row */}
-      <div className="sticky top-0 bg-white/90 z-10 border-b border-slate-100" />
+      <div className="sticky top-0 bg-white/90 z-10 border-b border-slate-200" />
       {weekDays.map((day, i) => {
         const dateStr = formatDate(day);
         const isToday = dateStr === formatDate(new Date());
         return (
           <div
             key={dateStr}
-            className={`sticky top-0 bg-white/90 z-10 border-b border-slate-100 flex flex-col items-center py-2 text-xs font-semibold ${isToday ? "text-indigo-600" : "text-slate-500"
+            className={`sticky top-0 bg-white/90 z-10 border-b border-l border-slate-200 flex flex-col items-center py-2 text-xs font-semibold ${isToday ? "text-indigo-600" : "text-slate-500"
               }`}
           >
             <span>{DAY_NAMES[i]}</span>
@@ -186,7 +187,7 @@ const WeeklyGrid = memo(function WeeklyGrid({ weekDays, todayStr, hours, tasksBy
       {hours.map((hour) => (
         <div key={hour} className="contents">
           {/* Time label */}
-          <div className="border-t border-slate-50 pr-2 pt-1 text-right text-xs text-slate-400 select-none h-14">
+          <div className="border-t border-slate-200 pr-2 pt-1 text-right text-xs text-slate-400 select-none h-14">
             {hour}
           </div>
 
@@ -221,7 +222,7 @@ interface DailyColumnProps {
 const DailyColumn = memo(function DailyColumn({ dateStr, hours, tasksBySlot, isToday }: DailyColumnProps) {
   return (
     <div>
-      <div className="sticky top-0 bg-white/90 z-10 border-b border-slate-100 py-3 px-5 text-sm font-semibold text-slate-700">
+      <div className="sticky top-0 bg-white/90 z-10 border-b border-slate-200 py-3 px-5 text-sm font-semibold text-slate-700">
         {isToday ? "Today" : dateStr}
       </div>
       <div className="grid" style={{ gridTemplateColumns: "56px 1fr" }}>
@@ -259,50 +260,84 @@ const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: Ca
 
   const { setNodeRef, isOver } = useDroppable({ id: slotId });
 
-  return (
-    <div
-      ref={setNodeRef}
-      id={slotId}
-      data-date={dateStr}
-      data-hour={hour}
-      className={`border-t border-slate-50 h-14 p-0.5 relative transition-colors ${isOver ? "bg-indigo-50 border-indigo-200 border" : "hover:bg-slate-50/60"
-        }`}
-    >
-      <AnimatePresence>
-        {tasks.map((task) => {
-          const cat = categories.find((c) => c.id === task.category_id);
-          return (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{
-                opacity: 0,
-                scale: 0.95,
-                transition: {
-                  delay: 1.5,
-                  duration: 0.3
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-                }
-              }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="absolute inset-x-0.5 inset-y-0.5 rounded-lg px-2 py-1 text-xs font-medium truncate flex items-center gap-1.5"
-              style={{
-                backgroundColor: cat ? `${cat.color}cc` : "#e2e8f0",
-                color: "#1e293b",
-              }}
-            >
-              {cat && (
-                <span
-                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: cat.color }}
-                />
-              )}
-              {task.title}
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
-    </div>
+  // Listener for adding a new event in the calendar
+  const handleAddClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsModalOpen(true);
+  };
+
+  return (
+    <>
+      <div
+        ref={setNodeRef}
+        id={slotId}
+        data-date={dateStr}
+        data-hour={hour}
+        className={`group border-t border-l border-slate-200 h-14 p-0.5 relative transition-colors ${isOver ? "bg-indigo-50 border-indigo-200 border" : "hover:bg-slate-50/60"
+          }`}
+      >
+        <AnimatePresence>
+          {tasks.map((task) => {
+            const cat = categories.find((c) => c.id === task.category_id);
+            return (
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{
+                  opacity: 0,
+                  scale: 0.95,
+                  transition: {
+                    delay: 1.5,
+                    duration: 0.3
+
+                  }
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="absolute inset-x-0.5 inset-y-0.5 rounded-lg px-2 py-1 text-xs font-medium truncate flex items-center gap-1.5"
+                style={{
+                  backgroundColor: cat ? `${cat.color}cc` : "#e2e8f0",
+                  color: "#1e293b",
+                }}
+              >
+                {cat && (
+                  <span
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: cat.color }}
+                  />
+                )}
+                {task.title}
+              </motion.div>
+            );
+          })}
+
+          <button
+            onClick={handleAddClick}
+            className="absolute inset-0 m-auto w-6 h-6 flex items-center justify-center rounded-md bg-white/90 text-slate-400 
+        shadow-sm border border-slate-200 opacity-0 group-hover:opacity-100 hover:text-indigo-600 
+        hover:border-indigo-300 hover:bg-white transition-all z-10 cursor-pointer"
+            title={`Add task at ${hour}`}
+          >
+
+
+            <Plus size={14} strokeWidth={3} />
+          </button>
+
+        </AnimatePresence>
+      </div>
+
+      {/* The modal render */}
+      {isModalOpen && (
+        <CreateTaskModal
+          isOpen={isModalOpen}
+          initialDate={dateStr}
+          initialTime={hour}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
+    </>
+
   );
 });
