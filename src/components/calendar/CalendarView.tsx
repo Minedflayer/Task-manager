@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useMemo, memo } from "react";
+import React, { useState, useMemo, memo } from "react";
 import { observer, useSelector } from "@legendapp/state/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, CalendarDays, Calendar, Plus } from "lucide-react";
 import { useDroppable } from "@dnd-kit/core";
 import { state$, Task } from "@/lib/state/store";
 import { getWeekDays, getDayHours, formatDate } from "@/lib/calendar/calendarUtils";
-import { Rnd } from "react-rnd";
-import { CreateTask } from "../tasks/CreateTask";
-import { CreateTaskModal } from "./CreateTaskModal";
+import { CreateTaskModal } from "../tasks/CreateTaskModal";
+import { TaskDetailsModal } from "../tasks/TaskDetailsModal";
+
+
 
 // Abbreviated day names for column headers
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -49,9 +50,10 @@ export const CalendarView = observer(function CalendarView({
     const map: Record<string, Task[]> = {};
 
     for (const t of allTasks) {
+      if (t.status === 'done') continue;
       if (t.scheduled_date && t.scheduled_time) {
         const hourkey = t.scheduled_time.slice(0, 2) + ":00";
-        const key = `${t.scheduled_date}-${hourkey}`;
+        const key = `${t.scheduled_date}-${hourkey}`; // The correct time slot
         if (!map[key]) map[key] = [];
         map[key].push(t);
       }
@@ -179,8 +181,7 @@ const WeeklyGrid = memo(function WeeklyGrid({ weekDays, todayStr, hours, tasksBy
         return (
           <div
             key={dateStr}
-            className={`sticky top-0 bg-white/90 z-10 border-b border-l border-slate-100 flex flex-col items-center py-2 text-xs font-semibold 
-              ${isToday ? "text-indigo-600" : "text-slate-500"
+            className={`sticky top-0 bg-white/90 z-10 border-b border-l border-slate-200 flex flex-col items-center py-2 text-xs font-semibold ${isToday ? "text-indigo-600" : "text-slate-500"
               }`}
           >
             <span>{DAY_NAMES[i]}</span>
@@ -269,8 +270,20 @@ interface CalendarSlotProps {
 const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: CalendarSlotProps) {
   const slotId = `slot-${dateStr}-${hour}`;
   const categories = state$.categories.get();
-
   const { setNodeRef, isOver } = useDroppable({ id: slotId });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+
+  // Listener for adding a new event in the calendar view
+  const handleAddClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsModalOpen(true);
+  };
+
+  const handleTaskClick = (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation();
+    setSelectedTaskId(taskId);
+  }
 
   // States for adding a new event in the calendar 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -289,53 +302,84 @@ const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: Ca
         id={slotId}
         data-date={dateStr}
         data-hour={hour}
-
-        className={`group border-t border-l border-slate-200 h-14 p-0.5 relative transition-colors ${isOver ? "bg-indigo-100/50" : "hover:bg-slate-50/60"
+        className={`group border-t border-l border-slate-200 h-14 p-0.5 relative transition-colors ${isOver ? "bg-indigo-50 border-indigo-200 border" : "hover:bg-slate-50/60"
           }`}
       >
-        {tasks.map((task) => {
-          const cat = categories.find((c) => c.id === task.category_id);
-          return (
+        <AnimatePresence>
+          {tasks.map((task) => {
+            const cat = categories.find((c) => c.id === task.category_id);
+            return (
+              <motion.div
+                key={task.id}
+                onClick={(e) => handleTaskClick(e, task.id)}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{
+                  opacity: 0,
+                  scale: 0.95,
+                  transition: {
+                    delay: 1.5,
+                    duration: 0.3
 
-            <div
-              key={task.id}
-              className="absolute inset-x-0.5 inset-y-0.5 rounded-lg px-2 py-1 text-xs font-medium truncate flex items-center gap-1.5 shadow-sm border border-black/5"
-              style={{
-                backgroundColor: cat ? `${cat.color}cc` : "#f8fafc",
-                color: "#1e293b",
-              }}
+                  }
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="absolute inset-x-0.5 inset-y-0.5 rounded-lg px-2 py-1 text-xs font-medium truncate flex items-center gap-1.5"
+                style={{
+                  backgroundColor: cat ? `${cat.color}cc` : "#e2e8f0",
+                  color: "#1e293b",
+                }}
+              >
+                {cat && (
+                  <span
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: cat.color }}
+                  />
+                )}
+                {task.title}
+              </motion.div>
+            );
+          })}
+
+          {/* Only render the Add button no task exist in the slot */}
+          {tasks.length === 0 && (
+            <button
+              onClick={handleAddClick}
+              className="absolute inset-0 m-auto w-6 h-6 flex items-center justify-center rounded-md bg-white/90 text-slate-400 
+            shadow-sm border border-slate-200 opacity-0 group-hover:opacity-100 hover:text-indigo-600 
+            hover:border-indigo-300 hover:bg-white transition-all z-10 cursor-pointer"
+              title={`Add task at ${hour}`}
             >
-              {cat && (
-                <span
-                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: cat.color }}
-                />
-              )}
-              {task.title}
-            </div>
-          );
-        })}
 
 
-        {/* The Visual Affordance */}
-        <button
-          onClick={handleAddClick}
-          className="absolute inset-0 m-auto w-6 h-6 flex items-center justify-center rounded-md bg-white/90 text-slate-400 shadow-sm border border-slate-200 opacity-0 group-hover:opacity-100 hover:text-indigo-600 hover:border-indigo-300 hover:bg-white transition-all z-10 cursor-pointer"
-          title={`Add task at ${hour}`}
-        >
-          <Plus size={14} strokeWidth={3} />
-        </button>
+              <Plus size={14} strokeWidth={3} />
+            </button>
+
+          )}
+
+
+        </AnimatePresence>
       </div>
 
       {/* The modal render */}
       {isModalOpen && (
         <CreateTaskModal
-          date={dateStr}
-          hour={hour}
-          // Pass a function down so the modal can close itself (e.g., on "Cancel" or "Save")
+          isOpen={isModalOpen}
+          initialDate={dateStr}
+          initialTime={hour}
           onClose={() => setIsModalOpen(false)}
         />
       )}
+
+      {selectedTaskId && (
+        <TaskDetailsModal
+          taskId={selectedTaskId}
+          isOpen={!!selectedTaskId}
+          onClose={() => (setSelectedTaskId(null))}
+
+        />
+      )}
+
     </>
 
   );

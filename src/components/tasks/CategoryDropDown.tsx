@@ -1,16 +1,21 @@
 import { Fragment } from 'react';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption, Transition } from '@headlessui/react';
 import { Tag, ChevronDown, Check } from 'lucide-react';
+import { observer } from '@legendapp/state/react'; // <-- 1. Import observer
+import { state$ } from '@/lib/state/store';         // <-- 2. Import state
 import type { Category } from '@/lib/state/store'; // Adjust import path if needed
 
 interface CategoryDropdownProps {
-    categories: Category[];
     selectedId: string;
     onChange: (id: string) => void;
 }
 
-export function CategoryDropdown({ categories, selectedId, onChange }: CategoryDropdownProps) {
+export const CategoryDropdown = observer(function CategoryDropdown({ selectedId, onChange }: CategoryDropdownProps) {
     // Find the full category object based on the selected ID
+
+
+
+    const categories = state$.categories.get();
     const selectedCategory = categories.find(c => c.id === selectedId) || null;
 
     return (
@@ -94,4 +99,4 @@ export function CategoryDropdown({ categories, selectedId, onChange }: CategoryD
             </div>
         </Listbox>
     );
-}
+});

@@ -1,20 +1,24 @@
 "use client";
 
 import React, { Fragment, useState } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
+import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
 import { observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
 import { X, Clock, AlignLeft, Tag } from 'lucide-react';
 import { DatePickerDropdown } from './DatePickerDropdown';
 import { CategoryDropdown } from './CategoryDropDown';
 import { TimePickerDropdown } from './TimePickerDropdown';
+import { generateId } from '@/utils/generateId';
+
 
 interface CreateTaskModalProps {
     isOpen: boolean
     onClose: () => void;
+    initialDate?: string;
+    initialTime?: string;
 }
 
-export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
+export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime = '' }: CreateTaskModalProps) {
     const [title, setTitle] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [scheduledDate, setScheduledDate] = useState('');
@@ -38,19 +42,21 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
         onClose();
     }
 
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!title.trim()) return;
+        //const newTaskId = generateId();
 
         state$.tasks.push({
-            id: crypto.randomUUID(),
+            id: generateId(),
             title: title.trim(),
             status: 'pending',
             category_id: categoryId || null,
             scheduled_date: scheduledDate || null,
             scheduled_time: startTime || null, // Mapping start time to your existing field
-            // description: description.trim() || null, // Requires DB/Store update
+            description: description.trim() || null, // Requires DB/Store update
         });
 
         handleClose();
@@ -61,31 +67,31 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
         <Transition appear show={isOpen} as={Fragment}>
             <Dialog as="div" className="relative z-50" onClose={handleClose}>
                 {/* Backdrop */}
-                <Transition.Child
+                <TransitionChild
                     as={Fragment}
-                    enter="ease-out duration-300"
+                    enter="transition-opacity ease-out duration-300"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
-                    leave="ease-in duration-200"
+                    leave="transition-opacity ease-in duration-200"
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm" />
-                </Transition.Child>
+                    <div className="fixed inset-0 bg-slate-900/40" />
+                </TransitionChild>
 
                 {/* Modal Positioner */}
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-4 text-center">
-                        <Transition.Child
+                        <TransitionChild
                             as={Fragment}
-                            enter="ease-out duration-300"
+                            enter="transition-all ease-out duration-300"
                             enterFrom="opacity-0 scale-95 translate-y-4"
                             enterTo="opacity-100 scale-100 translate-y-0"
-                            leave="ease-in duration-200"
+                            leave="transition-all ease-in duration-200"
                             leaveFrom="opacity-100 scale-100 translate-y-0"
                             leaveTo="opacity-0 scale-95 translate-y-4"
                         >
-                            <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all border border-slate-100">
+                            <DialogPanel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all border border-slate-100">
                                 {/* Header / Close Button */}
                                 <div className="flex justify-end mb-2">
                                     <button
@@ -105,7 +111,7 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
                                             className="w-full text-2xl font-medium text-slate-800 bg-transparent border-0 border-b-2 border-transparent hover:border-slate-100 focus:border-indigo-500 focus:ring-0 px-0 py-2 transition-colors placeholder:text-slate-400"
-                                            autoFocus
+
                                         />
                                     </div>
 
@@ -125,9 +131,9 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
 
 
                                     {/* Category Row */}
-                                    <div className="flex items-center gap-3 text-slate-600">
+                                    <div className="flex items-center gap-3 text-slate-600 relative z-10">
                                         <Tag size={18} className="text-slate-400" />
-                                        <CategoryDropdown categories={categories} selectedId={categoryId} onChange={setCategoryId} />
+                                        <CategoryDropdown selectedId={categoryId} onChange={setCategoryId} />
                                     </div>
 
                                     {/* Description Row (Visual Only for now) */}
@@ -160,12 +166,12 @@ export const CreateTaskModal = observer(function CreateTaskModal({ isOpen, onClo
                                         </button>
                                     </div>
                                 </form>
-                            </Dialog.Panel>
-                        </Transition.Child>
+                            </DialogPanel>
+                        </TransitionChild>
                     </div>
                 </div>
             </Dialog>
         </Transition>
     );
 
-});
+};

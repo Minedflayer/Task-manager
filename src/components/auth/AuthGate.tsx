@@ -5,6 +5,8 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { AuthPage } from "@/components/auth/AuthPage";
 import { setupRealtimeSync } from "@/lib/sync/realtime";
+import { fetchInitialData } from '@/lib/sync/realtime';
+import { globalUser$ } from '@/lib/state/store';
 
 interface AuthGateProps {
   children: React.ReactNode;
@@ -25,11 +27,32 @@ export function AuthGate({ children }: AuthGateProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
+    // Establish a strict 1.5-second failsafe
+    const fallbackTimeout = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 1500);
+
     // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (isMounted) {
+          setUser(session?.user ?? null);
+          globalUser$.set(session?.user ?? null); // Sync to global store
+
+        }
+      })
+      .catch((err) => {
+        console.error("Session check failed: ", err);
+      })
+      .finally(() => {
+        // Clear the timeout if Supabase responds in time
+        if (isMounted) {
+          setLoading(false);
+          clearTimeout(fallbackTimeout);
+        }
+      });
 
     // Listen for guest state changes (e.g. from the sidebar exit guest action)
     const handleGuestChange = () => {
@@ -44,6 +67,8 @@ export function AuthGate({ children }: AuthGateProps) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setUser(session?.user ?? null);
+        globalUser$.set(session?.user ?? null); // Sync to global store
+
         if (session?.user) {
           // If they were a guest, migrate their data
           const guestFlag = localStorage.getItem("task-manager-guest");
@@ -59,6 +84,12 @@ export function AuthGate({ children }: AuthGateProps) {
           localStorage.removeItem("task-manager-guest");
           setIsGuest(false);
           window.dispatchEvent(new Event("guest-state-change"));
+
+          try {
+            await fetchInitialData(session.user.id);
+          } catch (err) {
+            console.error("Failed to fetch");
+          }
 
           // Setup realtime sync
           if (!cleanupSync) {
@@ -107,3 +138,4 @@ export function AuthGate({ children }: AuthGateProps) {
 
   return <>{children}</>;
 }
+

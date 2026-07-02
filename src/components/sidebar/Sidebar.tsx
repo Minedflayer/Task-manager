@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { observer } from '@legendapp/state/react';
-import { state$ } from '@/lib/state/store';
+import { globalUser$, state$ } from '@/lib/state/store';
 import { Home, List, Trash2, LogIn, LogOut } from 'lucide-react';
 import { CreateCategory } from '../categories/CreateCategory';
 import { supabase } from '@/lib/supabase';
@@ -10,25 +10,43 @@ import type { User } from '@supabase/supabase-js';
 
 export const Sidebar = observer(function Sidebar() {
   const categories = state$.categories.get();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Fetch initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+  // Instantly read the user from memory. No loading, no fetching!
+  const user = globalUser$.get();
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  // useEffect(() => {
+  //   let isMounted = true;
+
+
+  //   const fallbackTimeout = setTimeout(() => {
+  //     if (isMounted) setLoading(false);
+  //   }, 1500);
+
+  //   // Fetch initial session safely
+  //   supabase.auth.getSession()
+  //     .then(({ data: { session } }) => {
+  //       if (isMounted) setUser(session?.user ?? null);
+  //     })
+  //     .catch(err => console.error("Sidebar session error:", err))
+  //     .finally(() => {
+  //       if (isMounted) {
+  //         setLoading(false);
+  //         clearTimeout(fallbackTimeout);
+  //       }
+  //     });
+
+  //   // Listen for auth changes
+  //   const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+  //     if (isMounted) setUser(session?.user ?? null);
+  //   });
+
+  //   return () => {
+  //     isMounted = false;
+  //     clearTimeout(fallbackTimeout);
+  //     subscription.unsubscribe();
+  //   };
+  // }, []);
 
   const handleExitGuest = () => {
     localStorage.removeItem("task-manager-guest");
@@ -37,21 +55,45 @@ export const Sidebar = observer(function Sidebar() {
 
   const handleSignOut = async () => {
     if (confirm('Are you sure you want to sign out?')) {
-      await supabase.auth.signOut();
+      try {
+        await supabase.auth.signOut()
+
+      } catch (error) {
+        console.log("Supabase signout failed, forcing local logout:", error);
+      } finally {
+        state$.tasks.set([]);
+        state$.categories.set([]);
+        globalUser$.set(null);
+
+        window.location.reload();
+      };
     }
   };
 
+  const handleDeleteCategory = (categoryId: string, categoryName: string) => {
+    if (confirm(`Are you sure you want to delete the "${categoryName}" category?`)) {
+      // Remove category from global state
+      const currentCategories = state$.categories.get();
+      state$.categories.set(currentCategories.filter(c => c.id !== categoryId));
+
+      // Clean up
+      const tasks = state$.tasks.peek();
+      const now = new Date().toISOString;
+
+      tasks.forEach((task, index) => {
+        if (task.category_id === categoryId) {
+          state$.tasks[index].category_id.set(null);
+          state$.tasks[index].updated_at.set(now);
+        }
+
+      });
+
+    }
+  }
+
   return (
     <aside className="w-64 bg-white/60 backdrop-blur-xl border-r border-slate-200 h-screen p-4 flex flex-col gap-6">
-      {loading ? (
-        <div className="flex items-center gap-3 px-3 py-3 bg-white rounded-xl shadow-sm border border-slate-100 animate-pulse">
-          <div className="w-9 h-9 rounded-xl bg-slate-200" />
-          <div className="flex-1 flex flex-col gap-1.5">
-            <div className="h-3 bg-slate-200 rounded w-16" />
-            <div className="h-2 bg-slate-200 rounded w-24" />
-          </div>
-        </div>
-      ) : user ? (
+      {user ? (
         <div className="flex flex-col gap-2 p-3 bg-slate-50 border border-slate-100 rounded-2xl shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-semibold shadow-md shadow-orange-100 text-sm">
@@ -86,7 +128,7 @@ export const Sidebar = observer(function Sidebar() {
               <span className="text-[10px] text-indigo-600 font-medium mt-1 leading-none bg-indigo-50 px-1.5 py-0.5 rounded-full w-max">Guest Mode</span>
             </div>
           </div>
-          
+
           <button
             onClick={handleExitGuest}
             className="mt-1 w-full flex items-center justify-center gap-2 py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
@@ -110,13 +152,26 @@ export const Sidebar = observer(function Sidebar() {
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="flex items-center gap-3 px-2 py-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors text-sm text-slate-600 font-medium"
+              className="group flex items-center justify-between px-2 py-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors text-sm text-slate-600 font-medium"
             >
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: cat.color }} 
-              />
-              {cat.name}
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: cat.color }}
+                />
+                {cat.name}
+              </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteCategory(cat.id, cat.name);
+                }}
+                className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 rounded transition-all"
+                title="Delete Category"
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
           ))}
         </div>
@@ -124,7 +179,7 @@ export const Sidebar = observer(function Sidebar() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-slate-200">
-        <button 
+        <button
           onClick={async () => {
             if (confirm('Are you sure you want to clear all tasks?')) {
               state$.tasks.set([]);
