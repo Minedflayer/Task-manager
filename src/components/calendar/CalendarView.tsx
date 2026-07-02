@@ -62,89 +62,100 @@ export const CalendarView = observer(function CalendarView({
   });
 
   return (
-    <div className="flex flex-col bg-white/70 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            aria-label="Previous"
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span className="text-sm font-semibold text-slate-700 min-w-[120px] text-center">
-            {view === "weekly"
-              ? `${weekDays[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${weekDays[6].toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-              : currentDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-          </span>
-          <button
-            type="button"
-            onClick={() => navigate(1)}
-            aria-label="Next"
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            <ChevronRight size={16} />
-          </button>
+    <Rnd
+      default={{ x: 0, y: 0, width: 800, height: 600 }}
+      minWidth={400}
+      minHeight={300}
+      bounds="parent" // Prevents dragging outside the parent/containeer
+      className="z-40 absolute"
+      dragHandleClassName="drag-handle"
+      cancel=".cancel-drag"
+    >
+
+      <div className="flex flex-col bg-white/70 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        {/* ── Header ── */}
+        <div className=" drag-handle cursor-grab active:cursor-grabbing flex items-center justify-between px-5 py-3 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              aria-label="Previous"
+              className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <span className="text-sm font-semibold text-slate-700 min-w-[120px] text-center">
+              {view === "weekly"
+                ? `${weekDays[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${weekDays[6].toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                : currentDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+            </span>
+            <button
+              type="button"
+              onClick={() => navigate(1)}
+              aria-label="Next"
+              className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+
+          {/* View toggle */}
+          <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+            <button
+              type="button"
+              onClick={() => setView("daily")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "daily"
+                ? "bg-white shadow-sm text-slate-800"
+                : "text-slate-500 hover:text-slate-700"
+                }`}
+            >
+              <Calendar size={13} />
+              Daily
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("weekly")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "weekly"
+                ? "bg-white shadow-sm text-slate-800"
+                : "text-slate-500 hover:text-slate-700"
+                }`}
+            >
+              <CalendarDays size={13} />
+              Weekly
+            </button>
+          </div>
         </div>
 
-        {/* View toggle */}
-        <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
-          <button
-            type="button"
-            onClick={() => setView("daily")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "daily"
-              ? "bg-white shadow-sm text-slate-800"
-              : "text-slate-500 hover:text-slate-700"
-              }`}
+        {/* ── Body ── */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="cancel-drag overflow-auto flex-1 h-full"
+            style={{ maxHeight: "calc(100vh - 280px)" }}
           >
-            <Calendar size={13} />
-            Daily
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("weekly")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "weekly"
-              ? "bg-white shadow-sm text-slate-800"
-              : "text-slate-500 hover:text-slate-700"
-              }`}
-          >
-            <CalendarDays size={13} />
-            Weekly
-          </button>
-        </div>
+            {view === "weekly" ? (
+              <WeeklyGrid
+                weekDays={weekDays}
+                todayStr={todayStr}
+                hours={VISIBLE_HOURS}
+                tasksBySlot={tasksBySlot}
+              />
+            ) : (
+              <DailyColumn
+                dateStr={currentDateStr}
+                hours={VISIBLE_HOURS}
+                tasksBySlot={tasksBySlot}
+                isToday={currentDateStr === todayStr}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
-
-      {/* ── Body ── */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={view}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.15 }}
-          className="overflow-auto"
-          style={{ maxHeight: "calc(100vh - 280px)" }}
-        >
-          {view === "weekly" ? (
-            <WeeklyGrid
-              weekDays={weekDays}
-              todayStr={todayStr}
-              hours={VISIBLE_HOURS}
-              tasksBySlot={tasksBySlot}
-            />
-          ) : (
-            <DailyColumn
-              dateStr={currentDateStr}
-              hours={VISIBLE_HOURS}
-              tasksBySlot={tasksBySlot}
-              isToday={currentDateStr === todayStr}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </div>
+    </Rnd>
   );
 });
 
@@ -175,7 +186,8 @@ const WeeklyGrid = memo(function WeeklyGrid({ weekDays, todayStr, hours, tasksBy
           >
             <span>{DAY_NAMES[i]}</span>
             <span
-              className={`mt-0.5 w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold ${isToday ? "bg-indigo-600 text-white" : "text-slate-700"
+              className={`mt-0.5 w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold 
+                ${isToday ? "bg-indigo-600 text-white" : "text-slate-700"
                 }`}
             >
               {day.getUTCDate()}
@@ -231,7 +243,7 @@ const DailyColumn = memo(function DailyColumn({ dateStr, hours, tasksBySlot, isT
           const slotTasks = tasksBySlot[`${dateStr}-${hour}`] || EMPTY_TASKS;
           return (
             <div key={hour} className="contents">
-              <div className="border-t border-slate-50 pr-2 pt-1 text-right text-xs text-slate-400 select-none h-14">
+              <div className="border-t border-slate-200 pr-2 pt-1 text-right text-xs text-slate-400 select-none h-14">
                 {hour}
               </div>
               <CalendarSlot
@@ -271,6 +283,16 @@ const CalendarSlot = observer(function CalendarSlot({ dateStr, hour, tasks }: Ca
   const handleTaskClick = (e: React.MouseEvent, taskId: string) => {
     e.stopPropagation();
     setSelectedTaskId(taskId);
+  }
+
+  // States for adding a new event in the calendar 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Add listener
+  const handleAddClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsModalOpen(true);
+    console.log(`Open Create Task for: Date ${dateStr}, Time: ${hour}`);
   }
 
   return (
