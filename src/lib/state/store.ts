@@ -20,6 +20,7 @@ export interface Task {
   end_time?: string | null
   description?: string | null;
   updated_at?: string;
+  recurrence: 'none' | 'daily' | null;
 }
 
 export interface SyncOperation {

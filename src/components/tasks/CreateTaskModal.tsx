@@ -4,10 +4,11 @@ import React, { Fragment, useState } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
 import { observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
-import { X, Clock, AlignLeft, Tag } from 'lucide-react';
+import { X, Clock, AlignLeft, Tag, Repeat } from 'lucide-react';
 import { DatePickerDropdown } from './DatePickerDropdown';
 import { CategoryDropdown } from './CategoryDropDown';
 import { TimePickerDropdown } from './TimePickerDropdown';
+import { RepeatDropdown } from './RepeatDropdown';
 import { generateId } from '@/utils/generateId';
 
 
@@ -24,8 +25,8 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
     const [scheduledDate, setScheduledDate] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
-
     const [description, setDescription] = useState('');
+    const [repeatMode, setRepeatMode] = useState<'none' | 'daily'>('none');
 
     const categories = state$.categories.get();
 
@@ -35,6 +36,7 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
         setScheduledDate('');
         setStartTime('');
         setDescription('');
+        setRepeatMode('none');
     };
 
     const handleClose = () => {
@@ -57,6 +59,7 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
             scheduled_date: scheduledDate || null,
             scheduled_time: startTime || null, // Mapping start time to your existing field
             description: description.trim() || null, // Requires DB/Store update
+            recurrence: repeatMode === 'none' ? null : repeatMode, // Added recurrence field
         });
 
         handleClose();
@@ -134,6 +137,16 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
                                     <div className="flex items-center gap-3 text-slate-600 relative z-10">
                                         <Tag size={18} className="text-slate-400" />
                                         <CategoryDropdown selectedId={categoryId} onChange={setCategoryId} />
+                                    </div>
+
+                                    {/* Repeat Row */}
+                                    <div className="flex items-center gap-3 text-slate-600 relative z-10 mt-1">
+                                        <Repeat size={18} className="text-slate-400" />
+                                        <RepeatDropdown
+                                            value={repeatMode}
+                                            // Accept the wide string from the dropdown, and explicitly tell TS it's safe to set
+                                            onChange={(val) => setRepeatMode(val as 'none' | 'daily')}
+                                        />
                                     </div>
 
                                     {/* Description Row (Visual Only for now) */}
