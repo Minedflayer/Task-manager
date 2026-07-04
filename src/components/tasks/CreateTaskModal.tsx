@@ -2,7 +2,6 @@
 
 import React, { Fragment, useState } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
-import { observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
 import { X, Clock, AlignLeft, Tag, Repeat } from 'lucide-react';
 import { DatePickerDropdown } from './DatePickerDropdown';
@@ -10,6 +9,8 @@ import { CategoryDropdown } from './CategoryDropDown';
 import { TimePickerDropdown } from './TimePickerDropdown';
 import { RepeatDropdown } from './RepeatDropdown';
 import { generateId } from '@/utils/generateId';
+
+import { DurationDropdown, DurationMode } from './DurationDropdown';
 
 
 interface CreateTaskModalProps {
@@ -26,7 +27,10 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
     const [description, setDescription] = useState('');
+
     const [repeatMode, setRepeatMode] = useState<'none' | 'daily'>('none');
+    const [durationMode, setDurationMode] = useState<DurationMode>('7_days');
+    const [customEndDate, setCustomEndDate] = useState('');
 
     const categories = state$.categories.get();
 
@@ -37,6 +41,8 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
         setStartTime('');
         setDescription('');
         setRepeatMode('none');
+        setDurationMode('7_days'); // Reset to default
+        setCustomEndDate('');      // Clear custom date
     };
 
     const handleClose = () => {
@@ -44,13 +50,27 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
         onClose();
     }
 
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!title.trim()) return;
-        //const newTaskId = generateId();
 
+        // Calculate the recurrence end date
+        let finalRecurrenceEndDate = null
+
+        if (repeatMode === "daily") {
+            if (durationMode === 'custom') {
+                finalRecurrenceEndDate = null;
+            } else {
+                // Determine base date (use scheduledDate or fallback to today)
+                const baseDate = scheduledDate ? new Date(scheduledDate) : new Date();
+                const daysToAdd = durationMode === '7_days' ? 7 : 30;
+
+                baseDate.setDate(baseDate.getDate() + daysToAdd);
+                finalRecurrenceEndDate = baseDate.toISOString().split('T')[0]; // format as YYYY-MM-DD
+            }
+
+        }
         state$.tasks.push({
             id: generateId(),
             title: title.trim(),
@@ -60,6 +80,7 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
             scheduled_time: startTime || null, // Mapping start time to your existing field
             description: description.trim() || null, // Requires DB/Store update
             recurrence: repeatMode === 'none' ? null : repeatMode, // Added recurrence field
+            recurrence_end_date: finalRecurrenceEndDate,
         });
 
         handleClose();
@@ -147,6 +168,25 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
                                             // Accept the wide string from the dropdown, and explicitly tell TS it's safe to set
                                             onChange={(val) => setRepeatMode(val as 'none' | 'daily')}
                                         />
+
+                                        {repeatMode === 'daily' && (
+                                            <>
+                                                <DurationDropdown
+                                                    value={durationMode}
+                                                    onChange={setDurationMode}
+
+                                                />
+
+                                                {durationMode === 'custom' && (
+                                                    <DatePickerDropdown
+                                                        selectedDate={customEndDate}
+                                                        onChange={setCustomEndDate}
+
+                                                    />
+                                                )}
+
+                                            </>
+                                        )}
                                     </div>
 
                                     {/* Description Row (Visual Only for now) */}
