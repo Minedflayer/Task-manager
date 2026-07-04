@@ -119,16 +119,13 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
 
                                 {/* Top Action Bar */}
                                 <div className="flex justify-end gap-1 p-3">
-                                    <button onClick={handleSave} className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors" title="Save Changes">
+                                    <button onClick={handleSave} className="cursor-pointer p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors" title="Save Changes">
                                         <Pencil size={18} />
                                     </button>
-                                    <button onClick={handleDelete} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors" title="Delete Task">
+                                    <button onClick={handleDelete} className="cursor-pointer p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors" title="Delete Task">
                                         <Trash2 size={18} />
                                     </button>
-                                    <button className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors">
-                                        <MoreVertical size={18} />
-                                    </button>
-                                    <button onClick={onClose} className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors ml-2">
+                                    <button onClick={onClose} className="cursor-pointer p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors ml-2">
                                         <X size={20} />
                                     </button>
                                 </div>

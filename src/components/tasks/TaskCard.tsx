@@ -7,6 +7,7 @@ import { Check, Calendar as CalendarIcon, Clock, GripVertical } from "lucide-rea
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { state$, Task } from "@/lib/state/store";
+import { useState } from "react";
 
 interface TaskCardProps {
   task$: ObservableObject<Task>;
@@ -17,6 +18,7 @@ export const TaskCardBody = observer(function TaskCardBody({ task$, onTaskClick 
   // .get() subscribes this component directly to this specific task's properties
   const task = task$.get();
   const isDone = task.status === "done";
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Use useSelector so unrelated category updates don't re-render this card
   const category = useSelector(() =>
@@ -104,7 +106,7 @@ export const TaskCard = observer(function TaskCard({ task$, onTaskClick }: TaskC
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
       // Added `overflow-hidden` so inner text doesn't spill out while height shrinks to 0
       onClick={() => onTaskClick?.(id)}
-      className="flex items-center gap-3 p-4 bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow overflow-hidden"
+      className="cursor-pointer flex items-center gap-3 p-4 bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow overflow-hidden"
     >
 
       <TaskCardBody task$={task$} />

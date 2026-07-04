@@ -20,7 +20,6 @@ export function DurationDropdown({ value, onChange }: DurationDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // MISSING VARIABLE FIX: This line must be inside the component, before the return statement
     const selectedOption = DURATION_OPTIONS.find((o) => o.id === value) || DURATION_OPTIONS[0];
 
     useEffect(() => {

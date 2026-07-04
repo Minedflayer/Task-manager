@@ -53,9 +53,34 @@ export const CalendarView = observer(function CalendarView({
       if (t.status === 'done') continue;
       if (t.scheduled_date && t.scheduled_time) {
         const hourkey = t.scheduled_time.slice(0, 2) + ":00";
-        const key = `${t.scheduled_date}-${hourkey}`; // The correct time slot
-        if (!map[key]) map[key] = [];
-        map[key].push(t);
+
+        if (t.recurrence === 'daily' && t.recurrence_end_date) {
+          let currentDate = new Date(t.scheduled_date);
+          const endDate = new Date(t.recurrence_end_date);
+
+          // Reset hours to midnight to avoid daylight saving/timezone offset bugs
+          currentDate.setHours(0, 0, 0, 0);
+          endDate.setHours(0, 0, 0, 0);
+
+          let safetyLimit = 0;
+          while (currentDate <= endDate && safetyLimit < 365) {
+            const dateStr = formatDate(currentDate);
+            const key = `${dateStr}-${hourkey}`;
+
+            if (!map[key]) map[key] = [];
+            map[key].push(t);
+
+            // Increment the date by exactly 1 day
+            currentDate.setDate(currentDate.getDate() + 1);
+            safetyLimit++;
+          }
+
+        } else {
+          // Standard non-repeating tasks
+          const key = `${t.scheduled_date}-${hourkey}`; // The correct time slot
+          if (!map[key]) map[key] = [];
+          map[key].push(t);
+        }
       }
     }
     return map;
@@ -94,7 +119,7 @@ export const CalendarView = observer(function CalendarView({
           <button
             type="button"
             onClick={() => setView("daily")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "daily"
+            className={`cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "daily"
               ? "bg-white shadow-sm text-slate-800"
               : "text-slate-500 hover:text-slate-700"
               }`}
@@ -105,7 +130,7 @@ export const CalendarView = observer(function CalendarView({
           <button
             type="button"
             onClick={() => setView("weekly")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "weekly"
+            className={`cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === "weekly"
               ? "bg-white shadow-sm text-slate-800"
               : "text-slate-500 hover:text-slate-700"
               }`}

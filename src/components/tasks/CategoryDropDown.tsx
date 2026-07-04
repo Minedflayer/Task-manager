@@ -22,7 +22,7 @@ export const CategoryDropdown = observer(function CategoryDropdown({ selectedId,
         <Listbox value={selectedId} onChange={onChange}>
             <div className="relative z-20">
                 {/* The Trigger Button */}
-                <ListboxButton className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 hover:bg-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
+                <ListboxButton className="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600 hover:bg-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
                     <Tag size={14} className="text-slate-400" />
                     <span className="block truncate max-w-[120px]">
                         {selectedCategory ? selectedCategory.name : "No Category"}
