@@ -171,7 +171,7 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
 
                                         {/* Category Link */}
                                         <div className='flex items-center gap-4 relative z-2'>
-                                            <div className='-ml-3'>
+                                            <div className='-ml-2'>
                                                 <CategoryDropdown
                                                     selectedId={draftCategoryId}
                                                     onChange={setDraftCategoryId}
@@ -182,22 +182,6 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
 
                                         </div>
 
-
-                                        {/* Generic Visual Mocks from Image */}
-                                        <div className="flex items-center gap-4">
-                                            <Calendar className="w-5 h-5 text-slate-500 flex-shrink-0" />
-                                            <span className="text-sm">Victor Tell</span>
-                                        </div>
-
-                                        <div className="flex items-center gap-4">
-                                            <CalendarCheck className="w-5 h-5 text-slate-500 flex-shrink-0" />
-                                            <span className="text-sm">Free</span>
-                                        </div>
-
-                                        <div className="flex items-center gap-4">
-                                            <Lock className="w-5 h-5 text-slate-500 flex-shrink-0" />
-                                            <span className="text-sm">Private</span>
-                                        </div>
                                     </div>
                                 </div>
 
