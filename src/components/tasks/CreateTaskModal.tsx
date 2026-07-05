@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useRef, useEffect } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
 import { state$ } from '@/lib/state/store';
 import { X, Clock, AlignLeft, Tag, Repeat } from 'lucide-react';
@@ -31,6 +31,34 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
     const [repeatMode, setRepeatMode] = useState<'none' | 'daily'>('none');
     const [durationMode, setDurationMode] = useState<DurationMode>('7_days');
     const [customEndDate, setCustomEndDate] = useState('');
+
+    const titleInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        if (titleInputRef.current) {
+            titleInputRef.current.placeholder = '';
+        }
+
+        const targetText = "What's on your mind?";
+        let currentIndex = 0;
+
+        const intervalId = setInterval(() => {
+            if (titleInputRef.current) {
+                currentIndex++;
+                titleInputRef.current.placeholder = targetText.slice(0, currentIndex);
+
+                if (currentIndex >= targetText.length) {
+                    clearInterval(intervalId);
+                }
+            } else {
+                clearInterval(intervalId);
+            }
+        }, 60);
+
+        return () => clearInterval(intervalId);
+    }, [isOpen]);
 
     const categories = state$.categories.get();
 
@@ -130,8 +158,9 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
                                     {/* Title Input */}
                                     <div>
                                         <input
+                                            ref={titleInputRef}
                                             type="text"
-                                            placeholder="Add title"
+                                            placeholder=""
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
                                             className="w-full text-2xl font-medium text-slate-800 bg-transparent border-0 border-b-2 border-transparent hover:border-slate-100 focus:border-indigo-500 focus:ring-0 px-0 py-2 transition-colors placeholder:text-slate-400"
