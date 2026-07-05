@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-slate-50 text-slate-900 antialiased h-screen overflow-hidden`}>
+      <body className={`${inter.className} bg-slate-50 text-slate-900 antialiased h-[100dvh] overflow-x-hidden lg:h-screen lg:overflow-hidden`}>
         <AuthGate>
           {children}
         </AuthGate>
