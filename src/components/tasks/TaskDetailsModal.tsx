@@ -115,7 +115,7 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
                             leaveFrom="opacity-100 scale-100 translate-y-0"
                             leaveTo="opacity-0 scale-95 translate-y-4"
                         >
-                            <DialogPanel className="w-full max-w-[440px] transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-2xl transition-all flex flex-col">
+                            <DialogPanel className="w-full max-w-lg transform rounded-2xl bg-white text-left align-middle shadow-2xl transition-all flex flex-col">
 
                                 {/* Top Action Bar */}
                                 <div className="flex justify-end gap-1 p-3">
@@ -158,14 +158,14 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
                                     {/* Details List */}
                                     <div className="flex flex-col gap-4 text-slate-700">
                                         {/* Description */}
-                                        <div className="flex items-start gap-4">
-                                            <AlignLeft className="w-5 h-5 text-slate-500 mt-1 flex-shrink-0" />
+                                        <div className="flex items-start gap-3 text-slate-600 mt-2 w-full">
+                                            <AlignLeft size={18} className="text-slate-400 mt-2 flex-shrink-0" />
                                             <textarea
                                                 value={draftDescription}
                                                 onChange={(e) => setDraftDescription(e.target.value)}
-                                                placeholder="Add a description"
-                                                className="w-full bg-transparent border-0 focus:ring-0 p-0 text-sm resize-none placeholder:text-slate-400"
-                                                rows={2}
+                                                placeholder="Add description"
+                                                rows={3}
+                                                className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all resize-none"
                                             />
                                         </div>
 
@@ -186,7 +186,7 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
                                 </div>
 
                                 {/* Footer */}
-                                <div className="bg-slate-50/80 px-6 py-3 flex justify-end gap-3 mt-auto border-t border-slate-100">
+                                <div className="bg-slate-50/80 px-6 py-3 flex justify-end gap-3 mt-auto border-t border-slate-100 rounded-b-2xl">
                                     <button
                                         onClick={handleSave}
                                         className="px-5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 hover:text-slate-900 rounded-full transition-colors"
