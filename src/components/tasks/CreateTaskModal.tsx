@@ -155,7 +155,7 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
 
 
                                     {/* Category Row */}
-                                    <div className="flex items-center gap-3 text-slate-600 relative z-10">
+                                    <div className="flex items-center gap-3 text-slate-600 relative z-11">
                                         <Tag size={18} className="text-slate-400" />
                                         <CategoryDropdown selectedId={categoryId} onChange={setCategoryId} />
                                     </div>
