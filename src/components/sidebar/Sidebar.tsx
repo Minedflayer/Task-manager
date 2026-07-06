@@ -1,35 +1,19 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react'; // Removed useEffect
 import { observer } from '@legendapp/state/react';
-import { state$ } from '@/lib/state/store';
+import { state$, globalUser$ } from '@/lib/state/store'; // Added globalUser$
 import { Home, List, Trash2, LogIn, LogOut, Menu, X } from 'lucide-react';
 import { CreateCategory } from '../categories/CreateCategory';
 import { supabase } from '@/lib/supabase';
-import type { User } from '@supabase/supabase-js';
 
 export const Sidebar = observer(function Sidebar() {
   const categories = state$.categories.get();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  // Read the user directly from the global store
+  const user = globalUser$.get();
+
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  useEffect(() => {
-    // Fetch initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
 
   const handleExitGuest = () => {
     localStorage.removeItem("task-manager-guest");
@@ -69,15 +53,9 @@ export const Sidebar = observer(function Sidebar() {
             <X size={20} />
           </button>
         </div>
-        {loading ? (
-          <div className="flex items-center gap-3 px-3 py-3 bg-white rounded-xl shadow-sm border border-slate-100 animate-pulse">
-            <div className="w-9 h-9 rounded-xl bg-slate-200" />
-            <div className="flex-1 flex flex-col gap-1.5">
-              <div className="h-3 bg-slate-200 rounded w-16" />
-              <div className="h-2 bg-slate-200 rounded w-24" />
-            </div>
-          </div>
-        ) : user ? (
+
+        {/* Replaced the loading ternary operator. Just check if user exists. */}
+        {user ? (
           <div className="flex flex-col gap-2 p-3 bg-slate-50 border border-slate-100 rounded-2xl shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-semibold shadow-md shadow-orange-100 text-sm">
@@ -92,7 +70,6 @@ export const Sidebar = observer(function Sidebar() {
                 </span>
               </div>
             </div>
-
             <button
               onClick={handleSignOut}
               className="mt-1 w-full flex items-center justify-center gap-2 py-1.5 px-3 bg-white hover:bg-red-50 border border-slate-200 text-slate-600 hover:text-red-600 rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
@@ -112,7 +89,6 @@ export const Sidebar = observer(function Sidebar() {
                 <span className="text-[10px] text-indigo-600 font-medium mt-1 leading-none bg-indigo-50 px-1.5 py-0.5 rounded-full w-max">Guest Mode</span>
               </div>
             </div>
-
             <button
               onClick={handleExitGuest}
               className="mt-1 w-full flex items-center justify-center gap-2 py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
