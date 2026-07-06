@@ -8,12 +8,8 @@ import {
     X,
     Pencil,
     Trash2,
-    MoreVertical,
     AlignLeft,
     List as ListIcon,
-    Calendar,
-    CalendarCheck,
-    Lock,
 } from 'lucide-react';
 
 interface TaskDetailsModalProps {
@@ -47,8 +43,6 @@ export const TaskDetailsModal = observer(function TaskDetailsModal({ taskId, onC
 
         }
     }, [taskId]);
-
-    // if (!taskId || !task) return null;
 
     const handleSave = () => {
         const tasks = state$.tasks.peek();

@@ -13,6 +13,12 @@ interface TaskCardProps {
   onTaskClick?: (taskId: string) => void;
 }
 
+/**
+ * @description Renders the body of a task card.
+ * @param {ObservableObject<Task>} task$ - The observable state of the task.
+ * @param {(taskId: string) => void} onTaskClick - Callback function to handle task click.
+ * @returns {JSX.Element} The task card body.
+ */
 export const TaskCardBody = observer(function TaskCardBody({ task$, onTaskClick }: TaskCardProps) {
   // .get() subscribes this component directly to this specific task's properties
   const task = task$.get();
@@ -26,7 +32,7 @@ export const TaskCardBody = observer(function TaskCardBody({ task$, onTaskClick 
       : null
   );
 
-  // 1. Pass the mouse event and stop propagation
+  // Pass the mouse event and stop propagation
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     task$.status.set(isDone ? "pending" : "done");
@@ -77,7 +83,7 @@ export const TaskCardBody = observer(function TaskCardBody({ task$, onTaskClick 
 
           {/** The final checkmark */}
           <motion.path
-            d="M6 12l4 4L19 7" // fråga om detta senare
+            d="M6 12l4 4L19 7"
             stroke="currentColor"
             strokeWidth="3"
             strokeLinecap="round"
@@ -97,7 +103,7 @@ export const TaskCardBody = observer(function TaskCardBody({ task$, onTaskClick 
           {/* Animated Text Color Fading */}
           <motion.span
             animate={{
-              color: isDone ? "#94a3b8" : "#1e293b", // slate-400 vs slate-800
+              color: isDone ? "#94a3b8" : "#1e293b",
               opacity: isDone ? 0.6 : 1
             }}
             transition={{ duration: 0.3 }}
@@ -140,6 +146,12 @@ export const TaskCardBody = observer(function TaskCardBody({ task$, onTaskClick 
   );
 });
 
+/**
+ * @description Renders a draggable task card.
+ * @param {ObservableObject<Task>} task$ - The observable state of the task.
+ * @param {(taskId: string) => void} onTaskClick - Callback function to handle task click.
+ * @returns {JSX.Element} The draggable task card.
+ */
 export const TaskCard = observer(function TaskCard({ task$, onTaskClick }: TaskCardProps) {
   const id = task$.id.peek();
   const taskData = task$.peek();
@@ -172,7 +184,6 @@ export const TaskCard = observer(function TaskCard({ task$, onTaskClick }: TaskC
         }
       }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
-      // Added `overflow-hidden` so inner text doesn't spill out while height shrinks to 0
       onClick={() => onTaskClick?.(id)}
       className="cursor-pointer flex items-center gap-3 p-4 bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow overflow-hidden"
     >

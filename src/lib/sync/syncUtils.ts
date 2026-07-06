@@ -6,6 +6,12 @@ export interface MigrationPayload {
   tasks: (Task & { user_id: string })[];
 }
 
+/**
+ * Builds a payload for migration to Supabase, mapping the in-memory state to the database schema.
+ * @param userId The user ID to attach to the records
+ * @returns A MigrationPayload object
+ * 
+ */
 export function buildMigrationPayload(userId: string): MigrationPayload {
   const categories = state$.categories.get() || [];
   const tasks = state$.tasks.get() || [];
@@ -16,6 +22,10 @@ export function buildMigrationPayload(userId: string): MigrationPayload {
   };
 }
 
+/**
+ * Migrates the in-memory state to Supabase.
+ * @param userId The user ID to attach to the records
+ */
 export async function migrateToSupabase(userId: string): Promise<void> {
   const payload = buildMigrationPayload(userId);
 

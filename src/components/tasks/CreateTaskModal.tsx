@@ -105,9 +105,9 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
             status: 'pending',
             category_id: categoryId || null,
             scheduled_date: scheduledDate || null,
-            scheduled_time: startTime || null, // Mapping start time to your existing field
-            description: description.trim() || null, // Requires DB/Store update
-            recurrence: repeatMode === 'none' ? null : repeatMode, // Added recurrence field
+            scheduled_time: startTime || null,
+            description: description.trim() || null,
+            recurrence: repeatMode === 'none' ? null : repeatMode,
             recurrence_end_date: finalRecurrenceEndDate,
         });
 
