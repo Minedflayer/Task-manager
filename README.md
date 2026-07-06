@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Task Manager App
 
-## Getting Started
+![Next.js](https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 
-First, run the development server:
+A modern task management application built with Next.js, designed to help users efficiently organize, track, and manage their daily activities.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Quick Start
+1. Clone the repo
+2. Install dependencies: `npm install`
+3. Set up environment: `cp .env.example .env` (if applicable)
+4. Run the dev server: `npm run dev`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Commands
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | Run linter |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Architecture
+The project is built using **Next.js (App Router)** and follows a modern, local-first web architecture:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend Framework**: Next.js 16 (App Router) providing React Server Components and optimized routing.
+- **State Management**: [@legendapp/state](https://legendapp.com/open-source/state/) for local-first, highly responsive, and reactive state management.
+- **Backend & Database**: [Supabase](https://supabase.com/) for authentication and persistent cloud storage.
+- **UI & Styling**: 
+  - **Tailwind CSS v4** for utility-first styling.
+  - **Headless UI** and **Framer Motion** for accessible, animated interactive components like modals and dropdowns.
+  - **Lucide React** for consistent iconography.
+- **Testing**: Configured with **Vitest**, **React Testing Library**, and **Jest DOM** for robust component testing.
 
-## Learn More
+### Folder Structure
+- `src/app/` - Next.js App Router pages and layouts.
+- `src/components/` - Feature-based React components (e.g., `tasks/`, `categories/`, `auth/`, `sidebar/`).
+- `src/lib/` - Core utilities, including state models (`state/`), database clients (`supabase.ts`), and sync logic (`sync/`).
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
