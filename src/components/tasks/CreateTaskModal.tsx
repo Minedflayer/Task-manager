@@ -1,14 +1,16 @@
 "use client";
 
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useRef, useEffect } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
-import { observer } from '@legendapp/state/react';
 import { state$ } from '@/lib/state/store';
-import { X, Clock, AlignLeft, Tag } from 'lucide-react';
+import { X, Clock, AlignLeft, Tag, Repeat } from 'lucide-react';
 import { DatePickerDropdown } from './DatePickerDropdown';
 import { CategoryDropdown } from './CategoryDropDown';
 import { TimePickerDropdown } from './TimePickerDropdown';
+import { RepeatDropdown } from './RepeatDropdown';
 import { generateId } from '@/utils/generateId';
+
+import { DurationDropdown, DurationMode } from './DurationDropdown';
 
 
 interface CreateTaskModalProps {
@@ -24,8 +26,39 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
     const [scheduledDate, setScheduledDate] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
-
     const [description, setDescription] = useState('');
+
+    const [repeatMode, setRepeatMode] = useState<'none' | 'daily'>('none');
+    const [durationMode, setDurationMode] = useState<DurationMode>('7_days');
+    const [customEndDate, setCustomEndDate] = useState('');
+
+    const titleInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        if (titleInputRef.current) {
+            titleInputRef.current.placeholder = '';
+        }
+
+        const targetText = "What's on your mind?";
+        let currentIndex = 0;
+
+        const intervalId = setInterval(() => {
+            if (titleInputRef.current) {
+                currentIndex++;
+                titleInputRef.current.placeholder = targetText.slice(0, currentIndex);
+
+                if (currentIndex >= targetText.length) {
+                    clearInterval(intervalId);
+                }
+            } else {
+                clearInterval(intervalId);
+            }
+        }, 60);
+
+        return () => clearInterval(intervalId);
+    }, [isOpen]);
 
     const categories = state$.categories.get();
 
@@ -35,6 +68,9 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
         setScheduledDate('');
         setStartTime('');
         setDescription('');
+        setRepeatMode('none');
+        setDurationMode('7_days'); // Reset to default
+        setCustomEndDate('');      // Clear custom date
     };
 
     const handleClose = () => {
@@ -42,13 +78,27 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
         onClose();
     }
 
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!title.trim()) return;
-        //const newTaskId = generateId();
 
+        // Calculate the recurrence end date
+        let finalRecurrenceEndDate = null
+
+        if (repeatMode === "daily") {
+            if (durationMode === 'custom') {
+                finalRecurrenceEndDate = null;
+            } else {
+                // Determine base date (use scheduledDate or fallback to today)
+                const baseDate = scheduledDate ? new Date(scheduledDate) : new Date();
+                const daysToAdd = durationMode === '7_days' ? 6 : 29;
+
+                baseDate.setDate(baseDate.getDate() + daysToAdd);
+                finalRecurrenceEndDate = baseDate.toISOString().split('T')[0]; // format as YYYY-MM-DD
+            }
+
+        }
         state$.tasks.push({
             id: generateId(),
             title: title.trim(),
@@ -57,6 +107,8 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
             scheduled_date: scheduledDate || null,
             scheduled_time: startTime || null, // Mapping start time to your existing field
             description: description.trim() || null, // Requires DB/Store update
+            recurrence: repeatMode === 'none' ? null : repeatMode, // Added recurrence field
+            recurrence_end_date: finalRecurrenceEndDate,
         });
 
         handleClose();
@@ -96,7 +148,7 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
                                 <div className="flex justify-end mb-2">
                                     <button
                                         onClick={handleClose}
-                                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                        className="cursor-pointer p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                                     >
                                         <X size={20} />
                                     </button>
@@ -106,8 +158,9 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
                                     {/* Title Input */}
                                     <div>
                                         <input
+                                            ref={titleInputRef}
                                             type="text"
-                                            placeholder="Add title"
+                                            placeholder=""
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
                                             className="w-full text-2xl font-medium text-slate-800 bg-transparent border-0 border-b-2 border-transparent hover:border-slate-100 focus:border-indigo-500 focus:ring-0 px-0 py-2 transition-colors placeholder:text-slate-400"
@@ -131,9 +184,38 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
 
 
                                     {/* Category Row */}
-                                    <div className="flex items-center gap-3 text-slate-600 relative z-10">
+                                    <div className="flex items-center gap-3 text-slate-600 relative z-11">
                                         <Tag size={18} className="text-slate-400" />
                                         <CategoryDropdown selectedId={categoryId} onChange={setCategoryId} />
+                                    </div>
+
+                                    {/* Repeat Row */}
+                                    <div className="flex items-center gap-3 text-slate-600 relative z-10 mt-1">
+                                        <Repeat size={18} className="text-slate-400" />
+                                        <RepeatDropdown
+                                            value={repeatMode}
+                                            // Accept the wide string from the dropdown, and explicitly tell TS it's safe to set
+                                            onChange={(val) => setRepeatMode(val as 'none' | 'daily')}
+                                        />
+
+                                        {repeatMode === 'daily' && (
+                                            <>
+                                                <DurationDropdown
+                                                    value={durationMode}
+                                                    onChange={setDurationMode}
+
+                                                />
+
+                                                {durationMode === 'custom' && (
+                                                    <DatePickerDropdown
+                                                        selectedDate={customEndDate}
+                                                        onChange={setCustomEndDate}
+
+                                                    />
+                                                )}
+
+                                            </>
+                                        )}
                                     </div>
 
                                     {/* Description Row (Visual Only for now) */}
@@ -153,14 +235,14 @@ export function CreateTaskModal({ isOpen, onClose, initialDate = '', initialTime
                                         <button
                                             type="button"
                                             onClick={handleClose}
-                                            className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                            className="cursor-pointer px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={!title.trim()}
-                                            className="px-6 py-2 bg-indigo-600 text-white font-medium text-sm rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-200"
+                                            className="cursor-pointer px-6 py-2 bg-indigo-600 text-white font-medium text-sm rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-200"
                                         >
                                             Save Task
                                         </button>

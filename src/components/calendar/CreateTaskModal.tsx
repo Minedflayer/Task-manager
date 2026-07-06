@@ -9,6 +9,7 @@ import { state$ } from "@/lib/state/store";
 // Make sure to import the custom dropdowns we built earlier!
 import { CategoryDropdown } from "../tasks/CategoryDropDown";
 import { DatePickerDropdown } from "../tasks/DatePickerDropdown";
+import { generateId } from "@/utils/generateId";
 
 interface CreateTaskModalProps {
     date: string;
@@ -36,12 +37,13 @@ export const CreateTaskModal = observer(function CreateTaskModal({ date, hour, o
 
         // 3. Exact same logic from your CreateTask component
         state$.tasks.push({
-            id: crypto.randomUUID(),
+            id: generateId(),
             title: title.trim(),
             status: 'pending',
             category_id: categoryId || null,
             scheduled_date: scheduledDate || null,
             scheduled_time: scheduledTime || null,
+            recurrence_end_date: null
         });
 
         // 4. Close the modal after successful creation
@@ -63,7 +65,7 @@ export const CreateTaskModal = observer(function CreateTaskModal({ date, hour, o
                     <h2 className="text-lg font-semibold text-slate-800">New Task</h2>
                     <button
                         onClick={onClose}
-                        className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+                        className="cursor-pointer p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
                     >
                         <X size={18} />
                     </button>
@@ -83,7 +85,7 @@ export const CreateTaskModal = observer(function CreateTaskModal({ date, hour, o
                     <div className="flex flex-wrap items-center gap-3 mt-2">
                         {/* Custom Category Dropdown */}
                         <CategoryDropdown
-                            categories={categories}
+                            // categories={categories}
                             selectedId={categoryId}
                             onChange={setCategoryId}
                         />

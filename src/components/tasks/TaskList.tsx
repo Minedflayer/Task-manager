@@ -1,16 +1,15 @@
 "use client";
 
-import { useState } from "react"; // <-- 1. Import useState
+import { useState } from "react";
 import { observer, useSelector } from "@legendapp/state/react";
 import { state$ } from "@/lib/state/store";
 import { TaskCard } from "./TaskCard";
 import { AnimatePresence } from "framer-motion";
-import { TaskDetailsModal } from "./TaskDetailsModal"; // <-- 2. Import the modal
+import { TaskDetailsModal } from "./TaskDetailsModal";
 
 export const TaskList = observer(function TaskList() {
-  // 1. Isolate sorting logic
+  // Isolate sorting logic
   // This derived state strictly returns an array of string IDs.
-
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const sortedTaskIds = useSelector(() => {
     const tasks = state$.tasks.get();
@@ -31,7 +30,7 @@ export const TaskList = observer(function TaskList() {
 
   return (
     <>
-      {/* 4. Wrap the return in a fragment so you can render the list AND the modal */}
+      {/* Wrap the return in a fragment to render the list AND the modal */}
       <div className="flex flex-col gap-3">
         <AnimatePresence initial={false}>
           {sortedTaskIds.map((id) => {
@@ -44,7 +43,7 @@ export const TaskList = observer(function TaskList() {
                 key={id}
                 task$={task$}
                 onTaskClick={(taskId) => {
-                  console.log("TaskCard clicked! ID:", taskId); // <-- The debug log
+                  console.log("TaskCard clicked! ID:", taskId);
                   setSelectedTaskId(taskId);
                 }}
               />
@@ -53,10 +52,11 @@ export const TaskList = observer(function TaskList() {
         </AnimatePresence>
       </div>
 
-      {/* 5. Render the modal and pass the state and a close handler */}
+      {/* Render the modal */}
       <TaskDetailsModal
         taskId={selectedTaskId}
         onClose={() => setSelectedTaskId(null)}
+        isOpen={!!selectedTaskId}
       />
     </>
   );
