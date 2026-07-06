@@ -10,8 +10,6 @@ import { getWeekDays, getDayHours, formatDate } from "@/lib/calendar/calendarUti
 import { CreateTaskModal } from "../tasks/CreateTaskModal";
 import { TaskDetailsModal } from "../tasks/TaskDetailsModal";
 
-
-
 // Abbreviated day names for column headers
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 

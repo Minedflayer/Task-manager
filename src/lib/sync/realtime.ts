@@ -4,7 +4,6 @@ import { generateId } from '@/utils/generateId';
 
 let isApplyingRemoteChange = false;
 
-
 /**
  * @constant knownTasks In-memory cache for state diffing
  * @constant knownCategories In-memory cache for state diffing
@@ -71,7 +70,7 @@ async function doProcessQueue() {
           successfulIds.add(op.record_id);
 
         } else {
-          console.error(`[Sync] Supabase UPSERT Error for ${op.record_id}:`, error); // <-- Add this
+          console.error(`[Sync] Supabase UPSERT Error for ${op.record_id}:`, error);
         }
       } else if (op.action === 'DELETE') {
         const { error } = await supabase.from(op.table).delete().eq('id', op.record_id);
@@ -289,7 +288,6 @@ export function setupRealtimeSync(userId: string): () => void {
   };
 }
 
-
 export async function fetchInitialData(userId: string, retries = 1) {
   // Tell the sync engine to ignore these changes so it doesn't push them back to Supabase
   isApplyingRemoteChange = true;
@@ -332,11 +330,8 @@ export async function fetchInitialData(userId: string, retries = 1) {
     });
     state$.tasks.set(Array.from(taskMap.values()));
 
-
-
     const currentCategories = state$.categories.peek() || [];
     const categoryMap = new Map(currentCategories.map(c => [c.id, c]));
-
 
     remoteCategories.forEach(remoteCat => {
       const localCat = categoryMap.get(remoteCat.id);

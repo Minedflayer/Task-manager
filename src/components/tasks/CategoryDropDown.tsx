@@ -1,8 +1,8 @@
 import { Fragment } from 'react';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption, Transition } from '@headlessui/react';
 import { Tag, ChevronDown, Check } from 'lucide-react';
-import { observer } from '@legendapp/state/react'; // <-- 1. Import observer
-import { state$ } from '@/lib/state/store';         // <-- 2. Import state
+import { observer } from '@legendapp/state/react';
+import { state$ } from '@/lib/state/store';
 import type { Category } from '@/lib/state/store'; // Adjust import path if needed
 
 interface CategoryDropdownProps {
@@ -11,10 +11,7 @@ interface CategoryDropdownProps {
 }
 
 export const CategoryDropdown = observer(function CategoryDropdown({ selectedId, onChange }: CategoryDropdownProps) {
-    // Find the full category object based on the selected ID
-
-
-
+    // Find the full category object based on the selected I
     const categories = state$.categories.get();
     const selectedCategory = categories.find(c => c.id === selectedId) || null;
 
