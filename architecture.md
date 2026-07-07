@@ -16,7 +16,7 @@ graph TD
 
     subgraph Backend [Supabase]
         Auth[Supabase Auth]:::backendStyle
-        Postgres[(PostgreSQL: tasks, categories)]:::backendStyle
+        Postgres[(PostgreSQL: tasks, <br> categories)]:::backendStyle
         Realtime[Supabase Realtime Channel]:::backendStyle
     end
 
