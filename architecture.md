@@ -9,7 +9,7 @@ graph TD
 
     subgraph Client [Browser / Client-Side]
         UI[React UI Components]:::clientStyle
-        State[Legend-State: state$, globalUser$]:::storeStyle
+        State["Legend-State:<br>state$, globalUser$"]:::storeStyle
         Sync[Sync Engine: realtime.ts]:::syncStyle
         DB[(IndexedDB: Offline Store)]:::storeStyle
     end
