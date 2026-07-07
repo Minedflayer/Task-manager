@@ -39,4 +39,5 @@ The project is built using **Next.js (App Router)** and follows a modern, local-
 - `src/components/` - Feature-based React components (e.g., `tasks/`, `categories/`, `auth/`, `sidebar/`).
 - `src/lib/` - Core utilities, including state models (`state/`), database clients (`supabase.ts`), and sync logic (`sync/`).
 
+See [architecture.md](./architecture.md) for more details.
 
