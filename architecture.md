@@ -1,18 +1,26 @@
+### System Architecture
 ```mermaid
 graph TD
+    %% Define reusable style classes
+    classDef clientStyle fill:#f8fafc,stroke:#cbd5e1,stroke-width:2px,color:#0f172a;
+    classDef storeStyle fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#1e1b4b;
+    classDef syncStyle fill:#f3e8ff,stroke:#a855f7,stroke-width:2px,color:#3b0764;
+    classDef backendStyle fill:#fff7ed,stroke:#ea580c,stroke-width:2px,color:#431407;
+
     subgraph Client [Browser / Client-Side]
-        UI[React UI Components]
-        State[Legend-State: state$, globalUser$]
-        Sync[Sync Engine: realtime.ts]
-        DB[(IndexedDB: Offline Store)]
+        UI[React UI Components]:::clientStyle
+        State[Legend-State: state$, globalUser$]:::storeStyle
+        Sync[Sync Engine: realtime.ts]:::syncStyle
+        DB[(IndexedDB: Offline Store)]:::storeStyle
     end
 
     subgraph Backend [Supabase]
-        Auth[Supabase Auth]
-        Postgres[(PostgreSQL: tasks, categories)]
-        Realtime[Supabase Realtime Channel]
+        Auth[Supabase Auth]:::backendStyle
+        Postgres[(PostgreSQL: tasks, categories)]:::backendStyle
+        Realtime[Supabase Realtime Channel]:::backendStyle
     end
 
+    %% Apply explicit links with custom arrow colors
     UI <-->|Reads/Writes| State
     State <-->|Persists| DB
     State -->|Triggers onChange| Sync
@@ -22,7 +30,13 @@ graph TD
     Sync -->|UPSERT/DELETE Queue| Postgres
     Realtime -->|postgres_changes| Sync
     Postgres --> Realtime
+
+    %% Change link line colors globally or individually
+    linkStyle default stroke:#64748b,stroke-width:2px;
 ```
+
+---
+
 
 #### Sync Sequence Example
 
