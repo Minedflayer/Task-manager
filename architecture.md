@@ -1,11 +1,11 @@
 ### System Architecture
 ```mermaid
 graph TD
-    %% Define reusable style classes
-    classDef clientStyle fill:#f8fafc,stroke:#cbd5e1,stroke-width:2px,color:#0f172a;
-    classDef storeStyle fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#1e1b4b;
-    classDef syncStyle fill:#f3e8ff,stroke:#a855f7,stroke-width:2px,color:#3b0764;
-    classDef backendStyle fill:#fff7ed,stroke:#ea580c,stroke-width:2px,color:#431407;
+    %% Define reusable style classes with explicit padding adjustments (px)
+    classDef clientStyle fill:#f8fafc,stroke:#cbd5e1,stroke-width:2px,color:#0f172a,padding:15px;
+    classDef storeStyle fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#1e1b4b,padding:20px;
+    classDef syncStyle fill:#f3e8ff,stroke:#a855f7,stroke-width:2px,color:#3b0764,padding:15px;
+    classDef backendStyle fill:#fff7ed,stroke:#ea580c,stroke-width:2px,color:#431407,padding:15px;
 
     subgraph Client [Browser / Client-Side]
         UI[React UI Components]:::clientStyle
