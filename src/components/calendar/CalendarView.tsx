@@ -85,7 +85,7 @@ export const CalendarView = observer(function CalendarView({
   });
 
   return (
-    <div className="flex flex-col bg-white/70 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="flex flex-col bg-white/70 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
         <div className="flex items-center gap-2">

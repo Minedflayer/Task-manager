@@ -55,11 +55,11 @@ export const CreateTaskModal = observer(function CreateTaskModal({ date, hour, o
     return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div
-                className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm"
+                className="absolute inset-0 bg-slate-900/20"
                 onClick={onClose}
             />
 
-            <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-5 z-10 animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-white/90 rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-5 z-10 animate-in fade-in zoom-in-95 duration-200">
 
                 <div className="flex items-center justify-between mb-5">
                     <h2 className="text-lg font-semibold text-slate-800">New Task</h2>
