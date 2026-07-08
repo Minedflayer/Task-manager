@@ -9,6 +9,9 @@
 A modern task management application built with Next.js, designed to help users efficiently organize, track, and manage their daily activities.
 
 ## Quick Start
+**Try it out here:** https://task-manager-nu-seven-51.vercel.app/
+
+Or follow these instructions:
 1. Clone the repo
 2. Install dependencies: `npm install`
 3. Set up environment: `cp .env.example .env` (if applicable)
